@@ -1,4 +1,6 @@
 import { getSpotifyToken } from "./config/spotify.js";
+import { searchTrack } from "./services/spotify.service.js";
 
-getSpotifyToken()
+
+searchTrack("Eni bonne")
 
