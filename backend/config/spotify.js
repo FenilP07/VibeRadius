@@ -53,7 +53,7 @@ async function getSpotifyToken() {
     tokenExpiresAt = now + response.data.expires_in * 1000;
     
 
-    console.log("yout token000", accessToken)
+    return accessToken;
 
 }
 
