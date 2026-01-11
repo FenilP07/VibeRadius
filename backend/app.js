@@ -2,7 +2,9 @@ import express from "express";
 import logger from "./utils/logger.js";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
-import healthRoutes from "./routes/health.routes.js";
+
+import healthRouter from "./routes/health.route.js";
+import spotifyRouter from "./routes/spotify.route.js";
 
 const app = express();
 
@@ -29,8 +31,14 @@ app.use(
   })
 );
 
-app.use("/api/health", healthRoutes);
+// Routes
 
+// server health check
+app.use("/api/health", healthRouter);
+
+
+// spotify routes
+app.use("/api/spotify", spotifyRouter);
 
 
 export { app };
