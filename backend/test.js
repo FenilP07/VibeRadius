@@ -1,4 +1,4 @@
-import { getSpotifyToken } from "./config/spotify.js";
+import { getSpotifyToken } from "./configs/spotify.config.js";
 import { searchTrack } from "./services/spotify.service.js";
 
 
