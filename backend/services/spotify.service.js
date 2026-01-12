@@ -1,7 +1,7 @@
 import dotenv from "dotenv"; 
 dotenv.config();
 import axios from "axios";
-import { getSpotifyToken } from "../config/spotify.js";
+import { getSpotifyToken } from "../configs/spotify.config.js";
 
 // function to attach token in request header
 async function authHeaders() {
