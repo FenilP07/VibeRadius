@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import logger from "./utils/logger.js";
 import morgan from "morgan";
@@ -6,7 +8,7 @@ import cookieParser from "cookie-parser";
 import healthRouter from "./routes/health.route.js";
 import spotifyRouter from "./routes/spotify.route.js";
 import spotifyAuthRouter from "./routes/spotifyAuth.route.js";
-
+import { errorHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
 
@@ -34,14 +36,13 @@ app.use(
 );
 
 // Routes
-
 // server health check
 app.use("/api/health", healthRouter);
-
 
 // spotify routes
 app.use("/api/spotify", spotifyRouter);
 
 app.use("/spotify/login", spotifyAuthRouter);
 
+app.use(errorHandler);
 export { app };

@@ -1,7 +1,3 @@
-// Config file to get access token from spotify
-// in order to call other api
-import dotenv from "dotenv";
-dotenv.config();
 import axios from "axios";
 
 let accessToken = null;
