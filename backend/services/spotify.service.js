@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import axios from "axios";
 import { getSpotifyToken } from "../configs/spotify.config.js";
 
@@ -7,10 +9,10 @@ async function authHeaders() {
   const token = await getSpotifyToken();
 
   return {
-    Authorization: `Bearer  ${token}`,
+    Authorization: `Bearer ${token}`,
   };
 }
-
+console.log("SPOTIFY_API_BASE =", process.env.SPOTIFY_API_BASE);
 const base_url = process.env.SPOTIFY_API_BASE;
 
 // search song
