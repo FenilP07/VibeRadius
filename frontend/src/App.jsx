@@ -1,10 +1,10 @@
-import { useState } from "react";
+
+import SpotifySearch from "./components/SpotifySearch";
 import "./index.css";
 
 function App() {
-  const [count, setCount] = useState(0);
-
-  return <h1>Hello, VibeRadius!</h1>;
+ 
+  return <SpotifySearch/>;
 }
 
 export default App;
