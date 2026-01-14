@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import { searchTrack } from "../services/SpotifyService.js";
 
 export default function SpotifySearch() {
   const [query, setQuery] = useState("");
@@ -10,14 +10,14 @@ export default function SpotifySearch() {
 
   const searchTracks = async () => {
     if (!query.trim()) return alert("Enter a search term");
-    
+
     setLoading(true);
     setError("");
     setHasSearched(true);
-    
+
     try {
-      const res = await axios.get(`/api/spotify/search?q=${encodeURIComponent(query)}`);
-      setTracks(res.data?.data?.tracks?.items || []);
+      const items = await searchTrack(query);
+      setTracks(items || []);
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Error fetching tracks");
@@ -36,7 +36,7 @@ export default function SpotifySearch() {
   return (
     <div style={{ padding: "2rem", fontFamily: "Arial, sans-serif" }}>
       <h1>Spotify Track Search</h1>
-      
+
       <div style={{ marginBottom: "1rem" }}>
         <input
           type="text"
@@ -45,20 +45,20 @@ export default function SpotifySearch() {
           onChange={(e) => setQuery(e.target.value)}
           onKeyPress={handleKeyPress}
           disabled={loading}
-          style={{ 
-            padding: "0.5rem", 
-            width: "300px", 
+          style={{
+            padding: "0.5rem",
+            width: "300px",
             marginRight: "0.5rem",
-            opacity: loading ? 0.6 : 1
+            opacity: loading ? 0.6 : 1,
           }}
         />
-        <button 
-          onClick={searchTracks} 
+        <button
+          onClick={searchTracks}
           disabled={loading}
-          style={{ 
+          style={{
             padding: "0.5rem 1rem",
             cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.6 : 1
+            opacity: loading ? 0.6 : 1,
           }}
         >
           {loading ? "Searching..." : "Search"}
@@ -66,9 +66,7 @@ export default function SpotifySearch() {
       </div>
 
       {error && (
-        <div style={{ color: "red", marginBottom: "1rem" }}>
-          {error}
-        </div>
+        <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
       )}
 
       <ul style={{ listStyle: "none", padding: 0, marginTop: "1rem" }}>
@@ -84,12 +82,12 @@ export default function SpotifySearch() {
                 boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                 display: "flex",
                 alignItems: "center",
-                gap: "1rem"
+                gap: "1rem",
               }}
             >
               {track.album?.images?.[2] && (
-                <img 
-                  src={track.album.images[2].url} 
+                <img
+                  src={track.album.images[2].url}
                   alt={track.album.name}
                   style={{ width: "64px", height: "64px", borderRadius: "4px" }}
                 />
