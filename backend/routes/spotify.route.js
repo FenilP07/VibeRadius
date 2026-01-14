@@ -4,7 +4,7 @@ import { Router } from "express";
 
 const spotifyRouter = Router();
 
-spotifyRouter.post("/search", searchTrackController);
+spotifyRouter.get("/search", searchTrackController);
 
 
 export default spotifyRouter;
