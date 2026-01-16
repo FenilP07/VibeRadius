@@ -18,7 +18,7 @@ export async function searchTrackController( req, res) {
 
         const data = await searchTrack(q);
 
-        res.json(data)
+        res.json(data)``
 
 
     } catch (err) 
