@@ -19,7 +19,7 @@ const errorHandler = (err, req, res, next) => {
     error = new APIError(400, `Invalid value for ${err.path}`);
   } else if (err.code === 11000) {
     error = new APIError(409, "Duplicate key error");
-  } else if (!(error instanceof apiError)) {
+  } else if (!(error instanceof APIError)) {
     // Catch-all for unknown errors
     const statusCode = err.statusCode || 500;
     const message = err.message || "Internal server error";
