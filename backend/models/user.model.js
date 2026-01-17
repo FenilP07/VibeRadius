@@ -26,6 +26,11 @@ const userSchema = new Schema(
       required: true,
       minLength: 8,
     },
+    enum: {
+      type: String,
+      enum: ["user", "admin", "host"],
+      default: "user",
+    },
     refreshToken: {
       type: String,
       default: null,
