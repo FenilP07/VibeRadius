@@ -67,7 +67,7 @@ const joinSession = asyncHandler(async (req, res) => {
   session.participants.push(userID);
   await session.save();
 
-  return res.status(
+  return res.status(200).json(
     new APIResponse(
       200,
       {
@@ -86,11 +86,32 @@ const joinSession = asyncHandler(async (req, res) => {
 //leave session
 
 //session status cahange
-const sessionStatusChange = asyncHandler(async(req,res)=>{
+const sessionStatusChange = asyncHandler(async (req, res) => {
+  const hostId = req.user._id;
+  const { sessionId } = req.params;
+  const { session_status } = req.body;
 
-})
+  const session = Session.findById({ sessionId });
+
+  if (session.host_id.toString() !== hostId.toString())
+    throw new APIError(403, "Only the host can change session status");
+  session.session_status = session_status;
+  await session.save();
+
+  return res.status(200).json(
+    new APIResponse(
+      200,
+      {
+        sessionId: session._id,
+        session_status: session.session_status,
+      },
+      "Session status updated successfully"
+    )
+  );
+});
 
 // delete session
 
+const
 
-export { createSession, getMySession, joinSession,sessionStatusChange };
+export { createSession, getMySession, joinSession, sessionStatusChange };
