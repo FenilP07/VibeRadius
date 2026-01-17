@@ -19,14 +19,14 @@ app.use(express.static("public"));
 app.use(cookieParser());
 app.use(
   cors({
-     origin: "*",
-    // origin: [
-    //   "http://localhost:5173",
-    //   process.env.CLIENT_URL
-    // ],
+    origin: [
+      "http://localhost:5173",
+      process.env.CLIENT_URL
+    ],
     credentials: true,
   })
 );
+
 const morganFormat = ":method :url :status :response-time ms"; // Log method, URL, status, and response time
 app.use(
   morgan(morganFormat, {
