@@ -112,6 +112,26 @@ const sessionStatusChange = asyncHandler(async (req, res) => {
 
 // delete session
 
-const
+const deleteSession = asyncHandler(async (req, res) => {
+  const hostId = req.user._id;
+  const { sessionId } = req.params;
 
-export { createSession, getMySession, joinSession, sessionStatusChange };
+  const session = Session.findById({ sessionId });
+
+  if (session.host_id.toString() !== hostId.toString())
+    throw new APIError(403, "Only the host can delete session");
+
+  await session.deleteOne();
+
+  return res
+    .status(200)
+    .json(new APIResponse(200, null, "Session deleted successfully"));
+});
+
+export {
+  createSession,
+  getMySession,
+  joinSession,
+  sessionStatusChange,
+  deleteSession,
+};
