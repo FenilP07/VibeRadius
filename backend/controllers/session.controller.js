@@ -2,6 +2,7 @@
   import generateSessionCode from "../utils/generateSessionCode.js";
   import Session from "../models/session.model.js";
   import logger from "../utils/logger.js";
+  import { APIResponse } from "../utils/ApiResponse.js";
 
 
   const createSession = asyncHandler(async (req, res) => {
