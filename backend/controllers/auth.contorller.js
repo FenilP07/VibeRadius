@@ -50,22 +50,23 @@ const registerUser = asyncHandler(async (req, res, next) => {
   // genrate a random username
   const username = await createUniqueUsername();
 
+  
   // create a new user
-  const newUser = new User.create({
+  const user = await User.create({
     email,
     username,
     name,
     password,
   });
-
+  
   // generate tokens
-  const { accessTokens, refreshTokens } = await newUser.generateAccessRefreshToken();
+  const { accessTokens, refreshTokens } = await generateAccessRefreshToken(user._id);
 
-  // save the user
-  await newUser.save();
+  // fetch created user without password and refresh token
+  const createdUser = await User.findById(user._id).select("-password -refreshToken");
 
   // send response
-  options = {
+  const options = {
     httpOnly: true,
     secure: true,
   }
@@ -78,7 +79,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
     new APIResponse(
       200,
       {
-        user: newUser, accessTokens, refreshTokens
+        user: createdUser, accessTokens, refreshTokens
       },
       "User registered successfully!"
     )
