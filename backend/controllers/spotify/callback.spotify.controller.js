@@ -4,7 +4,7 @@ import { APIError } from '../../utils/ApiError.js';
 import axios from 'axios';
 import querystring from 'querystring';
 import SpotifyToken from '../../models/SpotifyToken.model.js';
-
+import User from '../../models/user.model.js'
 
 // to get the code which comes after user login from spotify auth screen
 // we will use this code and state to get the access token, refresh token, exp time
@@ -53,16 +53,21 @@ const handleSpotifyCallback = async(req, res) => {
 
             );
 
-            const { access_token, token_type, expires_in, refresh_token } = response.data;
             
 
+
+            const { access_token, token_type, expires_in, refresh_token } = response.data;
+            
+            const scope = process.env.SPOTIFY_SCOPES
+
             // Calculate expiration time
-            const expiresAt = new Date( Date.now() + expires_in);
+            const expiresAt = new Date( Date.now() + expires_in * 1000);
 
             // get user id
             // TODO -- Replace this part with JWT later
             // once we finish with user authentication
-            const userId = req.user?._id;
+            const userId = req.user?._id || "696b096e8e8eadeb3b3dea5b";
+
 
             if( !userId ){
                 return res.redirect('/auth/login');  // redirect to app login screen
@@ -70,8 +75,12 @@ const handleSpotifyCallback = async(req, res) => {
 
             // Update Databse
 
+            const isUser = await User.findOne({ _id: userId })
+            logger.info(`User found: ${JSON.stringify(isUser)}`);
+
+
             await SpotifyToken.findOneAndUpdate(
-                { user: userId },
+                { userId: userId },
                 {
                     accessToken: access_token,
                     refreshToken: refresh_token,

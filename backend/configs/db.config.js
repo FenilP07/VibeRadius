@@ -4,7 +4,7 @@ import logger from "../utils/logger.js";
 const connectDB = async () => {
   try {
     const connectionInstance = await mongoose.connect(
-      `${process.env.MONGO_URI}/"vibeRadiusDB"`
+      `${process.env.MONGO_URI}vibeRadiusDB`
     );
     logger.info(
       `\n mongo db connected !! db host: ${connectionInstance.connection.host}`
