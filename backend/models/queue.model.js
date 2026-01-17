@@ -3,25 +3,23 @@ import mongoose, { Schema } from "mongoose";
 const queueSchema = new Schema(
   {
     session_id: {
-      tyepe: Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId, 
       ref: "Session",
       required: true,
       index: true,
     },
     track_id: {
-      trype: stringify,
-      required: ture,
+      type: String, 
+      required: true, 
     },
     title: {
       type: String,
       required: true,
     },
-
     artists: {
       type: [String],
       required: true,
     },
-
     track_image: {
       type: String,
     },
@@ -31,19 +29,19 @@ const queueSchema = new Schema(
       required: true,
     },
     total_votes: {
-      type: Numnber,
+      type: Number, 
       default: 0,
       index: true,
     },
-    statsus: {
-      tyepe: String,
+    status: { 
+      type: String,
       enum: ["queued", "playing", "played", "skipped"],
       default: "queued",
       index: true,
     },
   },
   {
-    timeStamps: true,
+    timestamps: true, 
   }
 );
 
@@ -53,6 +51,7 @@ queueSchema.index(
     unique: true,
   }
 );
+
 const Queue = mongoose.model("Queue", queueSchema);
 
 export default Queue;
