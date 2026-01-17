@@ -65,12 +65,11 @@ const registerUser = asyncHandler(async (req, res, next) => {
   // fetch created user without password and refresh token
   const createdUser = await User.findById(user._id).select("-password -refreshToken");
 
-  // send response
   const options = {
     httpOnly: true,
     secure: true,
   }
-
+  
   res
   .status(201)
   .cookie("accessToken", accessTokens, options)
