@@ -32,7 +32,7 @@ const generateRefreshToken = function (user) {
   );
 };
 
-// Generate Access and Refresh Token and save refresh token in database
+// Access and Refresh Token and save refresh token in database
 const generateAccessRefreshToken = async (userId) => {
     try {
         const user = await User.findById(userId);
