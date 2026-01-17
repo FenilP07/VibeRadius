@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import User from "../models/user.model.js";
-import APIError from "../utils/ApiError.js";
-import APIResponse from "../utils/ApiResponse.js";
+import {APIError} from "../utils/ApiError.js";
+import {APIResponse} from "../utils/ApiResponse.js";
 import { createUniqueUsername } from "../utils/createUniqueUsername.js";
 
 /**
