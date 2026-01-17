@@ -39,7 +39,7 @@ const userSchema = new Schema(
 // pre hook to hash password
 userSchema.pre("save", async function (next) {
   try {
-    if (!this.isModified("password")) return this.password;
+    if (!this.isModified("password")) return next();
     const saltRound = 10; // number of character in the password
     this.password = await bcrypt.hash(this.password, saltRound);
     next();
@@ -56,7 +56,7 @@ userSchema.methods.comparePassword = async function (password) {
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
-      sub: this._id,
+      _id: this._id,
       email: this.email,
       username: this.username,
     },
@@ -70,9 +70,9 @@ userSchema.methods.generateAccessToken = function () {
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
-      sub: this._id,
-      email: this.email,
-      username: this.username,
+      _id: this._id,
+      // email: this.email,
+      // username: this.username,
     },
     process.env.JWT_SECRET,
     {
