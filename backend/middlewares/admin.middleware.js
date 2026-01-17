@@ -1,4 +1,4 @@
-import APIResponse from "../";
+import {APIResponse} from "../";
 
 const isAdmin = async (req, res, next) => {
   if (req.user.role !== "host") {

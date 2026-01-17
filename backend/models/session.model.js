@@ -42,7 +42,7 @@ const sessionSchema = new Schema(
   }
 );
 
-sessionSchema.index({ session_code: 1 });
+// sessionSchema.index({ session_code: 1 });
 sessionSchema.index({ host_id: 1, createdAt: -1 });
 
 const Session = mongoose.model("Session", sessionSchema);

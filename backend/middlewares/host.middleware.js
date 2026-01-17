@@ -1,4 +1,4 @@
-import APIResponse from "../utils/ApiResponse.js";
+import {APIResponse} from "../utils/ApiResponse.js";
 
 const isHost = (req, res, next) => {
   if (req.user.role !== "host") {
