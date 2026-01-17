@@ -3,12 +3,12 @@ import User from "../models/user.model.js";
 import { APIError } from "./ApiError.js"
 
 // Generate Access Token
-const generateAccessToken = function () {
+const generateAccessToken = function (user) {
   return jwt.sign(
     {
-      _id: this._id,
-      email: this.email,
-      username: this.username
+      _id: user._id,
+      email: user.email,
+      username: user.username
     },
     process.env.JWT_SECRET,
     {
@@ -18,12 +18,12 @@ const generateAccessToken = function () {
 };
 
 // Generate Refresh Token
-const generateRefreshToken = function () {
+const generateRefreshToken = function (user) {
   return jwt.sign(
     {
-      _id: this._id,
-      email: this.email,
-      username: this.username
+      _id: user._id,
+      email: user.email,
+      username: user.username
     },
     process.env.JWT_SECRET,
     {
@@ -36,8 +36,8 @@ const generateRefreshToken = function () {
 const generateAccessRefreshToken = async (userId) => {
     try {
         const user = await User.findById(userId);
-        const accessTokens = await generateAccessToken.call(user);
-        const refreshTokens = await generateRefreshToken.call(user);
+        const accessTokens = await generateAccessToken(user);
+        const refreshTokens = await generateRefreshToken(user);
 
         user.refreshToken = refreshTokens;
         await user.save({ validateBeforeSave: false });
