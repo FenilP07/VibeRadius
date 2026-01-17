@@ -5,9 +5,9 @@ import logger from "./utils/logger.js";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import cors from "cors"
-import healthRouter from "./routes/health.route.js";
-import spotifyRouter from "./routes/spotify.route.js";
-import spotifyAuthRouter from "./routes/spotifyAuth.route.js";
+import healthRoutes from "./routes/health.route.js";
+import spotifyRoutes from "./routes/spotify.route.js";
+import spotifyAuthRoutes from "./routes/spotifyAuth.route.js";
 import sessionRoutes from "./routes/session.route.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 
@@ -19,10 +19,11 @@ app.use(express.static("public"));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      process.env.CLIENT_URL
-    ],
+     origin: "*",
+    // origin: [
+    //   "http://localhost:5173",
+    //   process.env.CLIENT_URL
+    // ],
     credentials: true,
   })
 );
@@ -47,12 +48,12 @@ app.use(
 
 // Routes
 // server health check
-app.use("/api/health", healthRouter);
+app.use("/api/health", healthRoutes);
 
 // spotify routes
-app.use("/api/spotify", spotifyRouter);
+app.use("/api/spotify", spotifyRoutes);
 app.use("/api/session", sessionRoutes);
-app.use("/auth/spotify", spotifyAuthRouter);
+app.use("/auth/spotify", spotifyAuthRoutes);
 
 
 app.use(errorHandler);
