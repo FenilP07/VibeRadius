@@ -4,30 +4,29 @@ import bcrypt from "bcrypt";
 const userSchema = new Schema(
   {
     email: {
-      type: string,
+      type: String,
       required: true,
       unique: true,
       trim: true,
     },
     username: {
-      type: string,
+      type: String,
       required: true,
       unique: true,
       trim: true,
     },
     name: {
-      type: string,
+      type: String,
       required: true,
-      unique: true,
       trim: true,
     },
     password: {
-      type: string,
+      type: String,
       required: true,
       minLength: 8,
     },
     refreshToken: {
-      type: string,
+      type: String,
       default: null,
     },
   },
@@ -39,7 +38,7 @@ const userSchema = new Schema(
 // pre hook to hash password
 userSchema.pre("save", async function (next) {
   try {
-    if (!this.isModified(this.password)) return this.password;
+    if (!this.isModified("password")) return this.password;
     const saltRound = 10; // number of character in the password
     this.password = await bcrypt.hash(this.password, saltRound);
     next();

@@ -13,3 +13,16 @@ role (enum 3)
  
 
 //user regitration and login
+
+
+
+// models we need
+
+//session
+
+
+//song
+
+//vote
+
+//voting queue
