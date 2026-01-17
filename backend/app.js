@@ -42,8 +42,13 @@ app.use("/api/health", healthRouter);
 
 // spotify routes
 app.use("/api/spotify", spotifyRouter);
+<<<<<<< HEAD
 app.use("/spotify/login", spotifyAuthRouter);
 app.use("/api/session", sessionRoutes);
+=======
+
+app.use("/auth/spotify", spotifyAuthRouter);
+>>>>>>> ff51063 (handleSpotifyCallback)
 
 app.use(errorHandler);
 export { app };
