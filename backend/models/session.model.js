@@ -13,14 +13,19 @@ const sessionSchema = new Schema(
     },
     participants: {
       type: Number,
-      
-      default:0
+
+      default: 0,
     },
     session_status: {
       type: String,
       enum: ["active", "inactive", "halt"],
-      default: "inactive"
+      default: "inactive",
     },
+    current_track_id:{
+      type: Schema.Types.ObjectId,
+      ref: "Queue",
+      default: null,
+    }
   },
   {
     timestamps: true,
