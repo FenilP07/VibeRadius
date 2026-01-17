@@ -3,22 +3,27 @@ import logger from '../../utils/logger.js';
 import { APIError } from '../../utils/ApiError.js';
 import axios from 'axios';
 import querystring from 'querystring';
+import SpotifyToken from '../../models/SpotifyToken.model.js';
+
 
 // to get the code which comes after user login from spotify auth screen
 // we will use this code and state to get the access token, refresh token, exp time
-
 const handleSpotifyCallback = async(req, res) => {
 
     // get code and state from the request
 
     const {code, state} = req.query;
 
-    if( state === null ){
 
-        
-        throw new APIError(400, "State mismatch!");
+    if (state === null) {
+    throw new APIError(400, 'State mismatch!');
+    }
 
-    } else {
+    if (!code) {
+        throw new APIError(400, 'No authorization code received');
+    }
+
+
 
         var tokenURL = 'https://accounts.spotify.com/api/token';
         
@@ -51,14 +56,43 @@ const handleSpotifyCallback = async(req, res) => {
             const { access_token, token_type, expires_in, refresh_token } = response.data;
             
 
-            return res.json({ access_token, refresh_token, expires_in, });
+            // Calculate expiration time
+            const expiresAt = new Date( Date.now() + expires_in);
+
+            // get user id
+            // TODO -- Replace this part with JWT later
+            // once we finish with user authentication
+            const userId = req.user?._id;
+
+            if( !userId ){
+                return res.redirect('/auth/login');  // redirect to app login screen
+            } 
+
+            // Update Databse
+
+            await SpotifyToken.findOneAndUpdate(
+                { user: userId },
+                {
+                    accessToken: access_token,
+                    refreshToken: refresh_token,
+                    expiresAt,
+                    scope,
+                    updatedAt: Date.now()
+                },
+                { upsert: true, new: true}
+            )
+
+            logger.info(`Spotify tokens saved for user ${userId}`);
+
+            // Redirect to dashboard or queue page 
+            return res.redirect('/dashboard?spotify=connected');
+
 
         } catch (err){
-            console.error(err.response?.data || err);
+            logger.error('Token exchange failed:', err.response?.data || err.message);
              return res.redirect( "/#" + querystring.stringify({ error: "invalid_token", }) );
         }
-
-    }
+    
 
 }
 
