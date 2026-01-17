@@ -38,7 +38,7 @@ const userSchema = new Schema(
 // pre hook to hash password
 userSchema.pre("save", async function (next) {
   try {
-    if (!this.isModified("password")) return this.password;
+    if (!this.isModified("password")) return next();
     const saltRound = 10; // number of character in the password
     this.password = await bcrypt.hash(this.password, saltRound);
     next();

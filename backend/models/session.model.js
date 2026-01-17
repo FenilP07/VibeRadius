@@ -14,11 +14,23 @@ const sessionSchema = new Schema(
     session_code: {
       type: String,
       required: true,
+      unique: true,
+      uppercase: true,
     },
-    participants: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
+    participants: [
+      {
+        user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        joined_at: {
+          type: Date,
+          default: Date.now,
+        },
+        status: {
+          type: String,
+          enum: ["active", "inactive", "left", "kicked"],
+          default: "active",
+        },
+      },
+    ],
     session_status: {
       type: String,
       enum: ["active", "inactive", "halt"],
@@ -29,6 +41,9 @@ const sessionSchema = new Schema(
     timestamps: true,
   }
 );
+
+sessionSchema.index({ session_code: 1 });
+sessionSchema.index({ host_id: 1, createdAt: -1 });
 
 const Session = mongoose.model("Session", sessionSchema);
 

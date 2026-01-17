@@ -3,6 +3,7 @@ import generateSessionCode from "../utils/generateSessionCode.js";
 import Session from "../models/session.model.js";
 import logger from "../utils/logger.js";
 import { APIResponse } from "../utils/ApiResponse.js";
+import {APIError} from "../utils/ApiError.js"
 
 //create session
 const createSession = asyncHandler(async (req, res) => {
@@ -53,7 +54,7 @@ const getMySession = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new APIResponse(201, { session }, "session fetched succesfully"));
+    .json(new APIResponse(200, { session }, "session fetched succesfully"));
 });
 
 //join session
@@ -91,7 +92,7 @@ const sessionStatusChange = asyncHandler(async (req, res) => {
   const { sessionId } = req.params;
   const { session_status } = req.body;
 
-  const session = Session.findById({ sessionId });
+  const session = await Session.findById({ sessionId });
 
   if (session.host_id.toString() !== hostId.toString())
     throw new APIError(403, "Only the host can change session status");
@@ -116,7 +117,7 @@ const deleteSession = asyncHandler(async (req, res) => {
   const hostId = req.user._id;
   const { sessionId } = req.params;
 
-  const session = Session.findById({ sessionId });
+  const session = await Session.findById(sessionId);
 
   if (session.host_id.toString() !== hostId.toString())
     throw new APIError(403, "Only the host can delete session");
