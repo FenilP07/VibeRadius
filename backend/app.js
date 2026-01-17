@@ -4,7 +4,7 @@ import express from "express";
 import logger from "./utils/logger.js";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
-
+import cors from "cors"
 import healthRouter from "./routes/health.route.js";
 import spotifyRouter from "./routes/spotify.route.js";
 import spotifyAuthRouter from "./routes/spotifyAuth.route.js";
@@ -17,6 +17,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(cookieParser());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      process.env.CLIENT_URL
+    ],
+    credentials: true,
+  })
+);
 const morganFormat = ":method :url :status :response-time ms"; // Log method, URL, status, and response time
 app.use(
   morgan(morganFormat, {

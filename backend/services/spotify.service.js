@@ -12,7 +12,6 @@ async function authHeaders() {
     Authorization: `Bearer ${token}`,
   };
 }
-console.log("SPOTIFY_API_BASE =", process.env.SPOTIFY_API_BASE);
 const base_url = process.env.SPOTIFY_API_BASE;
 
 // search song
