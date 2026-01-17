@@ -1,8 +1,8 @@
-  import { asyncHandler } from "../utils/asyncHandler.js";
-  import generateSessionCode from "../utils/generateSessionCode.js";
-  import Session from "../models/session.model.js";
-  import logger from "../utils/logger.js";
-  import { APIResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import generateSessionCode from "../utils/generateSessionCode.js";
+import Session from "../models/session.model.js";
+import logger from "../utils/logger.js";
+import { APIResponse } from "../utils/ApiResponse.js";
 
 //create session
 const createSession = asyncHandler(async (req, res) => {
@@ -44,7 +44,6 @@ const createSession = asyncHandler(async (req, res) => {
 });
 
 //get session by hostID
-
 const getMySession = asyncHandler(async (req, res) => {
   const hostId = req.user._id;
 
@@ -59,10 +58,39 @@ const getMySession = asyncHandler(async (req, res) => {
 
 //join session
 
+const joinSession = asyncHandler(async (req, res) => {
+  const userID = req.user_id;
+  const { session_code } = req.body;
+
+  const session = await Session.findOne({ session_code });
+
+  session.participants.push(userID);
+  await session.save();
+
+  return res.status(
+    new APIResponse(
+      200,
+      {
+        session: {
+          _id: session._id,
+          session_name: session.session_name,
+          session_code: session.session_code,
+          participants: session.participants,
+        },
+      },
+      "Joined session succesfully"
+    )
+  );
+});
+
 //leave session
 
-//deleate sesssion
-
 //session status cahange
+const sessionStatusChange = asyncHandler(async(req,res)=>{
 
-export { createSession, getMySession };
+})
+
+// delete session
+
+
+export { createSession, getMySession, joinSession,sessionStatusChange };

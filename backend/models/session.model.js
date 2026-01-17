@@ -2,7 +2,11 @@ import mongoose, { Schema } from "mongoose";
 
 const sessionSchema = new Schema(
   {
-    host_id: {},
+    host_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     session_name: {
       type: String,
       required: true,
@@ -12,14 +16,13 @@ const sessionSchema = new Schema(
       required: true,
     },
     participants: {
-      type: Number,
-      
-      default:0
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
     session_status: {
       type: String,
       enum: ["active", "inactive", "halt"],
-      default: "inactive"
+      default: "inactive",
     },
   },
   {
