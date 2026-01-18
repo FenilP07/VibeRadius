@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { Eye, EyeOff, Music, Check, X } from 'lucide-react';
+import useAuthStore from '../../store/authStore.js'
 
 const Register = () => {
+
+  // For navigation
+  const navigate = useNavigate();
+
+  // Connect to Zustand store
+  const { register, isLoading, error, clearError } = useAuthStore();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -13,8 +22,6 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -30,7 +37,7 @@ const Register = () => {
       });
     }
 
-    if (error) setError('');
+    if (error) clearError();
   };
 
   // Password strength checker
@@ -97,14 +104,18 @@ const Register = () => {
       return;
     }
 
-    setIsLoading(true);
+    // Call Zustand register action
+    const result = await register({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+    });
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      console.log('Register submitted:', formData);
-      // Replace with actual register logic: await useAuthStore.getState().register(formData)
-    }, 1500);
+    if (result.success) {
+      // Navigate to dashboard (you'll need to add routing)
+      console.log('Registration successful! Redirecting to dashboard...');
+      // In your actual app: window.location.href = '/dashboard';
+    }
   };
 
   return (
@@ -122,7 +133,7 @@ const Register = () => {
         {/* Register Card */}
         <div className="bg-white rounded-lg shadow-sm p-8">
           <div className="space-y-6">
-            {/* Error Alert */}
+            {/* Error Alert - from Zustand */}
             {error && (
               <div className="bg-[#FDEEEE] border border-[#C93B3B] rounded-lg p-4 flex items-start">
                 <div className="flex-1">
@@ -131,7 +142,7 @@ const Register = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setError('')}
+                  onClick={clearError}
                   className="text-[#C93B3B] hover:text-[#A02E2E] text-xl leading-none"
                 >
                   ×
@@ -330,7 +341,7 @@ const Register = () => {
               )}
             </div>
 
-            {/* Register Button */}
+            {/* Register Button - uses Zustand isLoading */}
             <button
               type="button"
               onClick={handleSubmit}
@@ -357,7 +368,7 @@ const Register = () => {
               Already have an account?{' '}
               <button
                 type="button"
-                onClick={() => console.log('Navigate to login')}
+                onClick={() => navigate('/login')}
                 className="text-[#E07A3D] hover:text-[#C4612A] font-medium"
               >
                 Login here
@@ -369,7 +380,7 @@ const Register = () => {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-sm text-gray-500">
-            © 2024 Café Music Request. All rights reserved.
+            © 2026 Vibe Radius Inc. All rights reserved.
           </p>
         </div>
       </div>

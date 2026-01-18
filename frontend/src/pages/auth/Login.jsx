@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { Eye, EyeOff, Music } from 'lucide-react';
+import useAuthStore from '../../store/authStore.js'
+
 
 const Login = () => {
+
+  // For navigation
+  const navigate = useNavigate();
+
+  // Connect to Zustand store
+  const { login, isLoading, error, clearError } = useAuthStore();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -10,8 +20,6 @@ const Login = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -27,7 +35,7 @@ const Login = () => {
       });
     }
 
-    if (error) setError('');
+    if (error) clearError();
   };
 
   const validate = () => {
@@ -55,14 +63,17 @@ const Login = () => {
       return;
     }
 
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      console.log('Login submitted:', formData);
-      // Replace with actual login logic: await useAuthStore.getState().login(formData)
-    }, 1500);
+    // Call Zustand login action
+    const result = await login({
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (result.success) {
+      // Navigate to dashboard (you'll need to add routing)
+      console.log('Login successful! Redirecting to dashboard...');
+      // In your actual app: window.location.href = '/dashboard';
+    }
   };
 
   return (
@@ -73,14 +84,14 @@ const Login = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-[#E07A3D] rounded-full mb-4">
             <Music className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-[#5C4033] mb-2">Welcome Back</h1>
+          <h1 className="text-4xl font-bold text-[#5C4033] mb-2">Welcome!</h1>
           <p className="text-gray-600">Login to your account to continue</p>
         </div>
 
         {/* Login Card */}
         <div className="bg-white rounded-lg shadow-sm p-8">
           <div className="space-y-6">
-            {/* Error Alert */}
+            {/* Error Alert - from Zustand */}
             {error && (
               <div className="bg-[#FDEEEE] border border-[#C93B3B] rounded-lg p-4 flex items-start">
                 <div className="flex-1">
@@ -89,7 +100,7 @@ const Login = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setError('')}
+                  onClick={clearError}
                   className="text-[#C93B3B] hover:text-[#A02E2E] text-xl leading-none"
                 >
                   ×
@@ -170,14 +181,14 @@ const Login = () => {
               </label>
               <button
                 type="button"
-                onClick={() => console.log('Forgot password clicked')}
+                onClick={() => console.log('Navigate to forgot password')}
                 className="text-sm text-[#E07A3D] hover:text-[#C4612A] font-medium"
               >
                 Forgot password?
               </button>
             </div>
 
-            {/* Login Button */}
+            {/* Login Button - uses Zustand isLoading */}
             <button
               type="button"
               onClick={handleSubmit}
@@ -204,7 +215,7 @@ const Login = () => {
               Don't have an account?{' '}
               <button
                 type="button"
-                onClick={() => console.log('Navigate to register')}
+                onClick={() => navigate('/register')}
                 className="text-[#E07A3D] hover:text-[#C4612A] font-medium"
               >
                 Register here
@@ -216,7 +227,7 @@ const Login = () => {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-sm text-gray-500">
-            © 2024 Café Music Request. All rights reserved.
+            © 2026 Vibe Radius Inc. All rights reserved.
           </p>
         </div>
       </div>

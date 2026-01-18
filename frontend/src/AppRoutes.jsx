@@ -21,8 +21,8 @@ export default function AppRoutes() {
             <Route path='/admin/dashboard' element={<AdminDashboard />} />
 
             {/* Public routes - anyone can access */}
-            <Route path="/auth/login" element={<Login />} />
-            <Route path="/auth/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
             {/* Catch-all - 404 */}
             <Route path="*" element={<div>404 - Page not found</div>} />

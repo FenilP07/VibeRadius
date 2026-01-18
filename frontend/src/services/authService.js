@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_BASE_URL
+const authApiPrefix = '/api/auth'
 
 // Create axios instance
 const apiClient = axios.create({
@@ -24,31 +25,31 @@ apiClient.interceptors.response.use(
 
 export const authService = {
     login: async (Credentials) => {
-        return await apiClient.post('/auth/login', Credentials);
+        return await apiClient.post(`${authApiPrefix}/login`, Credentials);
     },
 
     register: async (userData) => {
-        return await apiClient.post('/auth/register', userData);
+        return await apiClient.post(`${authApiPrefix}/register`, userData);
     },
 
     logout: async () => {
-        return await apiClient.post('/auth/logout');
+        return await apiClient.post(`${authApiPrefix}/logout`);
     },
 
     verifyToken: async () => {
-        return await apiClient.get('/auth/verify-token');
+        return await apiClient.get(`${authApiPrefix}/verify-token`);
     },
 
     getCurrentUser: async (userId) => {
-        return await apiClient.get('/auth/me');
+        return await apiClient.get(`${authApiPrefix}/me`);
     },
 
     forgotPassword: async (email) => {
-        return await apiClient.post('/auth/forgot-password', {email});
+        return await apiClient.post(`${authApiPrefix}/forgot-password`, {email});
     },
 
     resetPassword: async (token, password) => {
-        return await apiClient.post(`/auth/reset-password/`, {token, password})
+        return await apiClient.post(`${authApiPrefix}/reset-password/`, {token, password})
     }
 }
 

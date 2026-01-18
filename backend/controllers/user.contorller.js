@@ -117,26 +117,49 @@ const registerUser = asyncHandler(async (req, res) => {
  * @param {Function} next - Express next middleware function
 **/
 const loginUser = asyncHandler(async (req, res) => {
+
+  logger.info("Login user request initiated");
+
   const { email, password } = req.body;
+
+  logger.info("Login user request received", { email });
   
   // check email and password field is not empty
   if (!email || !password)
     throw new APIError(400, "Fill out all the fields to login!");
+
+  logger.info("Validating user credentials", { email });
   
   // find user by email
   const user = await User.findOne({ email: email });
+
+  logger.info("User fetched from database", { email, userId: user ? user._id : null });
   
   // if user not found
   if (!user) throw new APIError(404, "User not found!");
 
+  logger.info("Comparing user password", { email, userId: user._id });
+
   // compare password
   const isMatch = await user.comparePassword(password);
+
+  logger.info("Password comparison result", { email, userId: user._id, isMatch });
   
   // if password does not match
   if (!isMatch) throw new APIError(401, "Invalid credentials!");
 
+  logger.info("User authenticated successfully", { email, userId: user._id });
+
   // generate tokens
   const { accessTokens, refreshTokens } = await generateAccessRefreshToken(user._id);
+
+  const createdUser = await User.findById(user._id).select("-password -refreshToken");
+
+  logger.info("Tokens generated for user", {
+    userId: user._id,
+    accessTokens,
+    refreshTokens,
+  });
 
   // send response
   const options = {
