@@ -8,14 +8,14 @@ import {
   sessionStatusChange,
 } from "../controllers/session.controller.js";
 import { isHost } from "../middlewares/host.middleware.js";
+import { isLoggedIn } from "../middlewares/auth.middleware.js";
 
 const sessionRouter = Router();
 
-sessionRouter.post("/create", isHost, createSession);
-sessionRouter.get("/my", getMySession);
+sessionRouter.post("/create", isLoggedIn, isHost, createSession);
+sessionRouter.get("/my", isLoggedIn,isHost, getMySession);
 sessionRouter.post("/join", joinSession);
-sessionRouter.delete("/:id/", isHost, deleteSession);
-sessionRouter.patch("/:id/status", isHost, sessionStatusChange);
-
+sessionRouter.delete("/:id/", isLoggedIn,isHost, deleteSession);
+sessionRouter.patch("/:id/status", isLoggedIn,isHost, sessionStatusChange);
 
 export default sessionRouter;
