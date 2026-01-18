@@ -94,12 +94,13 @@ const handleSpotifyCallback = async(req, res) => {
             logger.info(`Spotify tokens saved for user ${userId}`);
 
             // Redirect to dashboard or queue page 
-            return res.redirect('/dashboard?spotify=connected');
+            // return res.redirect('/dashboard?spotify=connected');
+            return res.redirect(`${process.env.FRONTEND_URL}/admin/dashboard?spotify=connected`);
 
 
         } catch (err){
             logger.error('Token exchange failed:', err.response?.data || err.message);
-             return res.redirect( "/#" + querystring.stringify({ error: "invalid_token", }) );
+            return res.redirect(`${process.env.FRONTEND_URL}/admin/dashboard?spotify=error&message=connection_failed`);
         }
     
 

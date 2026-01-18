@@ -8,4 +8,14 @@ const searchTrack = async (query) => {
   return response.data.data.tracks.items;
 };
 
-export { searchTrack };
+
+// Spotify Login
+
+const loginSpotify = async () => {
+  const response = await apiClient.get("/auth/spotify/login");
+
+  return response;
+}
+
+
+export { searchTrack, loginSpotify };
