@@ -113,8 +113,7 @@ const Register = () => {
 
     if (result.success) {
       // Navigate to dashboard (you'll need to add routing)
-      console.log('Registration successful! Redirecting to dashboard...');
-      // In your actual app: window.location.href = '/dashboard';
+      navigate('/');
     }
   };
 

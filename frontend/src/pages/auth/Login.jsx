@@ -5,7 +5,6 @@ import useAuthStore from '../../store/authStore.js'
 
 
 const Login = () => {
-
   // For navigation
   const navigate = useNavigate();
 
@@ -71,8 +70,7 @@ const Login = () => {
 
     if (result.success) {
       // Navigate to dashboard (you'll need to add routing)
-      console.log('Login successful! Redirecting to dashboard...');
-      // In your actual app: window.location.href = '/dashboard';
+      navigate('/');
     }
   };
 
