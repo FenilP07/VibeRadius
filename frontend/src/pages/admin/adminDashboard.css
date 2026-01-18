@@ -1,0 +1,38 @@
+/* src/pages/admin/AdminDashboard.css */
+
+@keyframes orb-pulse {
+  0%, 100% {
+    box-shadow: 0 0 60px rgba(224, 122, 61, 0.35);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 90px rgba(224, 122, 61, 0.5);
+    transform: scale(1.03);
+  }
+}
+
+.orb-pulse {
+  animation: orb-pulse 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); opacity: 0.6; }
+  50% { transform: translateY(-10px); opacity: 1; }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes floatSmooth {
+  0% {
+    transform: translateY(1px);
+  }
+  100% {
+    transform: translateY(-3px);
+  }
+}
+
+.animate-float-rotate {
+  animation: floatSmooth 1.5s ease-in-out infinite alternate;
+}

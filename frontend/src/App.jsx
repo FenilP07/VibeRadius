@@ -1,10 +1,13 @@
 
+import AppRoutes from "./AppRoutes";
 import SpotifySearch from "./components/SpotifySearch";
-import "./index.css";
+import './app.css'
+
 
 function App() {
  
-  return <SpotifySearch/>;
+  return <AppRoutes />
+
 }
 
 export default App;

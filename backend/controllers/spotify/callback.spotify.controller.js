@@ -3,7 +3,7 @@ import logger from '../../utils/logger.js';
 import { APIError } from '../../utils/ApiError.js';
 import axios from 'axios';
 import querystring from 'querystring';
-import SpotifyToken from '../../models/spotifyToken.model.js';
+import SpotifyToken from '../../models/SpotifyToken.model.js';
 import User from '../../models/user.model.js'
 
 // to get the code which comes after user login from spotify auth screen
