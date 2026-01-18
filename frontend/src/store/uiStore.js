@@ -26,10 +26,10 @@ const useUIStore = create((set) => ({
     // Modals
     modals: {},
     openModal: (name) => set((state) => ({
-        modals: {...state.modals, [name]: true}
+        modals: { ...state.modals, [name]: true }
     })),
     closeModal: (name) => set((state) => ({
-        modals: {...state.modals, [name]: false}
+        modals: { ...state.modals, [name]: false }
     })),
 
 }));
