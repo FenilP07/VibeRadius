@@ -1,7 +1,7 @@
 import apiClient from "../utils/apiClient.js";
 
 const searchTrack = async (query) => {
-  const response = await apiClient.get("/spotify/search", {
+  const response = await apiClient.get("/api/spotify/search", {
     params: { q: query },
   });
 
