@@ -65,8 +65,7 @@ const getSessionPlayback = asyncHandler(async (req, res) => {
   );
 });
 
-//vote
-
+//upvote
 const upvote = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { session_id, queue_track_id } = req.body;
@@ -98,4 +97,37 @@ const upvote = asyncHandler(async (req, res) => {
   );
 });
 
-export { addToQueue, getSessionPlayback, upvote };
+//unvote
+
+//next track
+
+const playNextTrack = asyncHandler(async (req, res) => {
+  const hostId = req.user.user_id;
+  const { session_id } = req.params;
+
+  const session = await Session.findById(session_id);
+
+  const nextTrack = await Queue.findOne({
+    session_id: session_id,
+    status: "queued",
+  }).sort({ total_votes: -1, createdAt: 1 });
+
+  if (current_track_id) {
+    await Queue.findByIdAndUpdate(session.current_track_id, {
+      status: "played",
+    });
+  }
+
+  ((nextTrack.status = "playing"), await nextTrack.save());
+
+  session.current_track_id = nextTrack._id;
+  await session.save();
+
+  return res
+    .status(200)
+    .json(
+      new APIResponse(200, { current_track: nextTrack }, "Playing next track")
+    );
+});
+
+export { addToQueue, getSessionPlayback, upvote, playNextTrack };
