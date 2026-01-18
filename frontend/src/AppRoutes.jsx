@@ -5,6 +5,7 @@ import StyleGuide from '../StyleGuide'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
+import SpotifySearch from './components/SpotifySearch'
 
 
 export default function AppRoutes() {
@@ -13,6 +14,9 @@ export default function AppRoutes() {
 
             {/* Redirect root to login if not authenticated */}
             <Route path="/" element={<Navigate to="/auth/login" replace />} />
+
+            {/* For Home */}
+            <Route path='/' element={<SpotifySearch/>}></Route>
 
             {/* For Style Guide */}
             <Route path='/styleguide' element={<StyleGuide />} />

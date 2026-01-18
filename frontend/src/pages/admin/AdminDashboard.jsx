@@ -10,7 +10,6 @@ import Button from "../../components/ui/Button";
 import "./adminDashboard.css";
 
 export const AdminDashboard = () => {
-  // Fixed dot positions to prevent re-randomization on render
   const floatingDots = useMemo(
     () => [
       { top: "15%", left: "10%", delay: "0s" },
@@ -27,17 +26,13 @@ export const AdminDashboard = () => {
     <div className="relative min-h-screen overflow-hidden bg-surface text-text-primary">
 
       {/* ================= BACKGROUND ================= */}
-      
-      {/* Base warm gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-surface via-surface to-primary/[0.08]" />
 
-      {/* Soft ambient orbs - very subtle */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] bg-primary/[0.04] rounded-full blur-[150px]" />
         <div className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] bg-accent/[0.03] rounded-full blur-[120px]" />
       </div>
 
-      {/* Noise texture overlay for warmth */}
       <div 
         className="absolute inset-0 opacity-[0.35] pointer-events-none mix-blend-soft-light"
         style={{
@@ -51,132 +46,132 @@ export const AdminDashboard = () => {
       </div>
 
       {/* ================= MAIN CONTENT ================= */}
-      <main className="relative z-10 flex flex-col-reverse lg:flex-row min-h-[calc(100vh-64px)] lg:items-center lg:gap-8 xl:gap-12">
+      <main className="relative z-10 flex items-center justify-center min-h-[calc(100vh-64px)] px-8 lg:px-16 xl:px-24">
 
-        {/* LEFT SECTION (Text + Features) */}
-        <section className="lg:w-[55%] flex flex-col justify-center px-8 lg:px-16 xl:px-24 py-16 lg:py-12 relative z-20">
+        <div className="w-full max-w-6xl flex flex-col-reverse lg:flex-row items-center gap-8">
 
-          {/* Eyebrow Text */}
-          <span className="text-primary font-medium tracking-widest uppercase text-sm">
-            Welcome to VibeRadius
-          </span>
+          {/* ---------- LEFT SECTION ---------- */}
+          <section className="flex-1 py-12">
 
-          {/* Headline */}
-          <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-accent-dark leading-[1.1] mt-4">
-            Let your space <br />
-            <span className="text-primary bg-gradient-to-r from-primary to-accent bg-clip-text [-webkit-background-clip:text] [-webkit-text-fill-color:transparent]">
-              feel alive.
+            {/* Eyebrow Text */}
+            <span className="text-primary font-medium tracking-widest uppercase text-sm">
+              Welcome to VibeRadius
             </span>
-          </h1>
 
-          {/* Description */}
-          <p className="mt-8 text-lg text-text-primary/80 max-w-xl leading-relaxed">
-            Customers scan. Songs queue. Your venue transforms into an
-            <span className="text-accent font-medium"> interactive music experience.</span>
-          </p>
+            {/* Headline */}
+            <h1 className="text-5xl lg:text-6xl font-bold tracking-tight text-accent-dark leading-[1.1] mt-4">
+              Let your space <br />
+              <span className="text-primary bg-gradient-to-r from-primary to-accent bg-clip-text [-webkit-background-clip:text] [-webkit-text-fill-color:transparent]">
+                feel alive.
+              </span>
+            </h1>
 
-          {/* Features */}
-          <div className="mt-10 flex flex-col gap-3">
-            <Feature 
-              icon={<FaQrcode className="text-lg" />} 
-              text="QR Requests" 
-              desc="Customers scan to add songs" 
-            />
-            <Feature 
-              icon={<MdQueueMusic className="text-lg" />} 
-              text="Live Queue" 
-              desc="Real-time song management" 
-            />
-            <Feature 
-              icon={<FaSpotify className="text-lg" />} 
-              text="Spotify Sync" 
-              desc="Direct integration with Spotify" 
-            />
-          </div>
+            {/* Description */}
+            <p className="mt-8 text-lg text-text-primary/80 max-w-xl leading-relaxed">
+              Customers scan. Songs queue. Your venue transforms into an
+              <span className="text-accent font-medium"> interactive music experience.</span>
+            </p>
 
-        </section>
-
-        {/* RIGHT SECTION (Animation + CTA) */}
-        <section className="lg:w-[45%] flex flex-col justify-between items-center px-8 py-20 lg:py-16 relative z-20">
-
-          {/* Content Container */}
-          <div className="relative flex flex-col items-center text-center max-w-xs">
-
-            {/* Animation + Central Orb */}
-            <div className="relative w-44 h-44 mb-10">
-
-              {/* Lottie Wave */}
-              <Lottie
-                animationData={waveAnimation}
-                loop
-                autoplay
-                className="absolute inset-0 scale-125 opacity-50"
+            {/* Features */}
+            <div className="mt-10 flex flex-col gap-3">
+              <Feature 
+                icon={<FaQrcode className="text-lg" />} 
+                text="QR Requests" 
+                desc="Customers scan to add songs" 
               />
+              <Feature 
+                icon={<MdQueueMusic className="text-lg" />} 
+                text="Live Queue" 
+                desc="Real-time song management" 
+              />
+              <Feature 
+                icon={<FaSpotify className="text-lg" />} 
+                text="Spotify Sync" 
+                desc="Direct integration with Spotify" 
+              />
+            </div>
 
-              {/* Micro-animation: Floating Dots - fixed positions */}
-              <div className="absolute inset-0 pointer-events-none">
-                {floatingDots.map((dot, i) => (
-                  <span
-                    key={i}
-                    className="absolute w-2 h-2 bg-primary-light rounded-full animate-float"
-                    style={{
-                      top: dot.top,
-                      left: dot.left,
-                      animationDelay: dot.delay,
-                    }}
-                  />
-                ))}
-              </div>
+          </section>
 
-              {/* Central Orb */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary-dark border-2 border-primary-light/40 shadow-[0_0_60px_rgba(224,122,61,0.35)] flex items-center justify-center orb-pulse">
-                  <FaMusic className="text-2xl text-white animate-float-rotate" />
+          {/* ---------- RIGHT SECTION ---------- */}
+          <section className="flex-1 flex justify-center py-12">
+
+            <div className="relative flex flex-col items-center text-center max-w-xs">
+
+              {/* Animation + Central Orb */}
+              <div className="relative w-44 h-44 mb-10">
+
+                <Lottie
+                  animationData={waveAnimation}
+                  loop
+                  autoplay
+                  className="absolute inset-0 scale-125 opacity-50"
+                />
+
+                <div className="absolute inset-0 pointer-events-none">
+                  {floatingDots.map((dot, i) => (
+                    <span
+                      key={i}
+                      className="absolute w-2 h-2 bg-primary-light rounded-full animate-float"
+                      style={{
+                        top: dot.top,
+                        left: dot.left,
+                        animationDelay: dot.delay,
+                      }}
+                    />
+                  ))}
                 </div>
+
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary-dark border-2 border-primary-light/40 shadow-[0_0_60px_rgba(224,122,61,0.35)] flex items-center justify-center orb-pulse">
+                    <FaMusic className="text-2xl text-white animate-float-rotate" />
+                  </div>
+                </div>
+
               </div>
+
+              {/* Title */}
+              <h2 className="text-2xl font-bold text-accent-dark">
+                Connect Your Music
+              </h2>
+
+              {/* Description */}
+              <p className="mt-3 text-text-primary/70 text-sm leading-relaxed">
+                Link your Spotify account to start accepting song requests from customers
+              </p>
+
+              {/* CTA Button */}
+              <Button
+                variant="primary"
+                className="mt-10 w-full h-14 text-base font-semibold shadow-[0_8px_30px_rgba(224,122,61,0.25)] flex items-center gap-3 justify-center"
+              >
+                <FaSpotify className="text-xl" />
+                Connect Spotify
+              </Button>
+
+              {/* Micro-copy */}
+              <span className="mt-4 text-text-muted text-xs flex items-center gap-2">
+                <svg 
+                  className="w-3.5 h-3.5" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" 
+                  />
+                </svg>
+                Takes less than 30 seconds • Secure OAuth
+              </span>
 
             </div>
 
-            {/* Title */}
-            <h2 className="text-2xl font-bold text-accent-dark">
-              Connect Your Music
-            </h2>
+          </section>
 
-            {/* Description */}
-            <p className="mt-3 text-text-primary/70 text-sm leading-relaxed">
-              Link your Spotify account to start accepting song requests from customers
-            </p>
-
-            {/* CTA Button */}
-            <Button
-              variant="primary"
-              className="mt-10 w-full h-14 text-base font-semibold shadow-[0_8px_30px_rgba(224,122,61,0.25)] flex items-center gap-3 justify-center"
-            >
-              <FaSpotify className="text-xl" />
-              Connect Spotify
-            </Button>
-
-            {/* Micro-copy with icon */}
-            <span className="mt-4 text-text-muted text-xs flex items-center gap-2">
-              <svg 
-                className="w-3.5 h-3.5" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" 
-                />
-              </svg>
-              Takes less than 30 seconds • Secure OAuth
-            </span>
-
-          </div>
-
-        </section>
+        </div>
 
       </main>
     </div>
@@ -184,6 +179,7 @@ export const AdminDashboard = () => {
 };
 
 /* ==================== Sub Components ==================== */
+
 const Feature = ({ icon, text, desc }) => (
   <div className="flex items-center gap-4 p-3 rounded-xl border border-transparent">
     <span className="w-12 h-12 bg-primary-subtle rounded-xl flex items-center justify-center text-primary text-xl shrink-0 border border-primary/10">
