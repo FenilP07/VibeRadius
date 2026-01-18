@@ -13,24 +13,24 @@ const apiClient = axios.create({
 
 
 // Request intercepter - runs before every request
-apiClient.interceptors.request.use(
-  (config) => {
-    // const token = localStorage.getItem('user_token');
+// apiClient.interceptors.request.use(
+//   (config) => {
+//     // const token = localStorage.getItem('user_token');
     
-    // // Define list of endpoints that DON'T need a token
-    // const publicEndpoints = ['/login', '/register', '/forgot-password'];
+//     // // Define list of endpoints that DON'T need a token
+//     // const publicEndpoints = ['/login', '/register', '/forgot-password'];
 
-    // // Check if the current request URL is in that list
-    // const isPublic = publicEndpoints.some(endpoint => config.url.includes(endpoint));
+//     // // Check if the current request URL is in that list
+//     // const isPublic = publicEndpoints.some(endpoint => config.url.includes(endpoint));
 
-    // if (token && !isPublic) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+//     // if (token && !isPublic) {
+//     //   config.headers.Authorization = `Bearer ${token}`;
+//     // }
 
-    // return config;
-  },
-  error => Promise.reject(error)
-);
+//     // return config;
+//   },
+//   error => Promise.reject(error)
+// );
 
 
 // Response intercepter - runs after every response
