@@ -26,3 +26,5 @@ const socketAuth = (socket, next) => {
     next(new Error("Invalid or expired token"));
   }
 };
+
+export default socketAuth;
