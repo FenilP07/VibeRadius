@@ -10,7 +10,12 @@ import SpotifyPlayer from "./pages/SpotifyPlayer.jsx";
 export default function AppRoutes() {
   return (
     <Routes>
+<<<<<<< HEAD
       {/* <Route path="/" element={<HomePage />}></Route> */}
+=======
+      <Route path="/" element={<HomePage />}></Route>
+      <Route path="/search" element={<SpotifySearch />}></Route>
+>>>>>>> 13d0ae7 (added some mockups for frontend from gemini)
 
       {/* For Style Guide */}
       <Route path="/styleguide" element={<StyleGuide />} />
