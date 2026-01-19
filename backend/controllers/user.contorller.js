@@ -158,10 +158,13 @@ const loginUser = asyncHandler(async (req, res) => {
   );
 
   // send response
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
+ const options = {
+  httpOnly: true, // prevents JS access
+  secure: process.env.NODE_ENV === "production", // only secure on production
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // cross-site for production
+  maxAge: 1000 * 60 * 60 * 24, // 1 day
+};
+
 
   res
     .status(200)
