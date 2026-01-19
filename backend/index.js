@@ -14,8 +14,17 @@ const io = new Server(server, {
   },
 });
 
-io.on("connection", (socket) => {
-  logger.info(`Socket connected: ${socket.id}`);
+// io.on("connection", (socket) => {
+//   logger.info(`Socket connected: ${socket.id}`);
+// });
+app.set("io", io);
+
+//session
+
+const sessionNamespace = io.of("/session");
+
+sessionNamespace.on("connection", (socket) => {
+  socket.on("disconnect", () => {});
 });
 
 connectDB()
