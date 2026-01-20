@@ -128,6 +128,33 @@ export const AdminDashboard = () => {
               />
             </div>
 
+<button
+  onClick={async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/spotify/test-spotify-token', {
+        method: 'GET',
+        credentials: 'include',   // ← this is correct — sends cookies
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(
+          `Request failed with status ${res.status}: ${errorData.message || 'No details'}`
+        );
+      }
+
+      const data = await res.json();
+      alert('Success! Token is fresh: ' + (data.message || 'Response received'));
+      console.log('Full response:', data);
+    } catch (err) {
+      console.error('Test failed:', err);
+      alert('Error: ' + (err.message || 'Something went wrong'));
+    }
+  }}
+>
+  Test Spotify Token
+</button>
+
           </section>
 
           {/* ---------- RIGHT SECTION ---------- */}
@@ -174,7 +201,7 @@ export const AdminDashboard = () => {
 
               {/* Description */}
               <p className="mt-3 text-text-primary/70 text-sm leading-relaxed">
-                {isConnected 
+                {isConnected
                   ? "Your Spotify account is linked. Ready to start a session!"
                   : "Link your Spotify account to start accepting song requests from customers"
                 }
