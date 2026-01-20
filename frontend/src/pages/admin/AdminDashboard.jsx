@@ -128,6 +128,7 @@ export const AdminDashboard = () => {
                 desc="Direct integration with Spotify"
               />
             </div>
+
           </section>
 
           {/* ---------- RIGHT SECTION ---------- */}
