@@ -3,8 +3,9 @@ import User from "../models/user.model.js";
 import { APIError } from "../utils/ApiError.js";
 import { APIResponse } from "../utils/ApiResponse.js";
 import { createUniqueUsername } from "../utils/createUniqueUsername.js";
-import { generateAccessRefreshToken } from "../utils/generateAccessRefreshToken.js";
+import { generateAccessRefreshToken, generateAccessToken } from "../utils/generateAccessRefreshToken.js";
 import logger from "../utils/logger.js";
+import jwt from "jsonwebtoken";
 
 // --- REGISTER USER ---
 const registerUser = asyncHandler(async (req, res) => {
@@ -99,7 +100,7 @@ const registerUser = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    path: "/api/auth/refresh-token",
+    // path: "/api/auth/refresh-token",
   };
 
   res
@@ -149,19 +150,18 @@ const loginUser = asyncHandler(async (req, res) => {
   );
 
   // send response
- const accessOptions = {
-  httpOnly: true, // prevents JS access
-  secure: process.env.NODE_ENV === "production", // only secure on production
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // cross-site for production
-};
+  const accessOptions = {
+    httpOnly: true, // prevents JS access
+    secure: process.env.NODE_ENV === "production", // only secure on production
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // cross-site for production
+  };
 
-const refreshOptions = {
-  httpOnly: true, // prevents JS access
-  secure: process.env.NODE_ENV === "production", // only secure on production
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // cross-site for production
-  path: "/api/auth/refresh-token",
-};
-
+  const refreshOptions = {
+    httpOnly: true, // prevents JS access
+    secure: process.env.NODE_ENV === "production", // only secure on production
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // cross-site for production
+    // path: "/api/auth/refresh-token",
+  };
 
   res
     .status(200)
@@ -182,6 +182,23 @@ const refreshOptions = {
 
 // --- LOGOUT USER ---
 const logoutUser = asyncHandler(async (req, res) => {
+  if (req.user?._id) {
+    await User.findByIdAndUpdate(req.user._id, {
+      $unset: { refreshToken: 1 },
+    });
+  }
+  const accessOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  };
+
+  const refreshOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  };
+
   res
     .status(200)
     .clearCookie("accessToken", accessOptions)
@@ -240,26 +257,12 @@ const deleteUser = asyncHandler(async (req, res) => {
 
 // --- GET CURRENT USER ---
 const getCurrentUser = asyncHandler(async (req, res) => {
-  const accessTokens = req.cookies?.accessToken;
-
-  if (!accessTokens) {
-    throw new APIError(401, "Access Token missing.");
-  }
-  
-  let decoded;
-  try {
-    decoded = jwt.verify(accessTokens, process.env.JWT_SECRET);
-  } catch (error) {
-    throw new APIError(401, "Invalid or expired access token.");
-  }
-  
-  const user = await User.findById(decoded._id).select(
-    "-password -refreshToken"
-  );
+  const user = req.user;
+  if (!user) throw new APIError(401, "User not found");
 
   return res
     .status(200)
-    .json(new APIResponse(200, { user, accessTokens }, "User fetched successfully"));
+    .json(new APIResponse(200, { user }, "User fetched successfully"));
 });
 
 // --- REFRESH ACCESS TOKEN ---
@@ -267,36 +270,36 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
-    return res
-      .status(401)
-      .json(new APIResponse(401, null, "Refresh token is required"));
+    throw new APIError(401, "Refresh token is required");
   }
 
   try {
-    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
 
     const user = await User.findById(decoded._id);
     if (!user || user.refreshToken !== refreshToken) {
-      return res
-        .status(401)
-        .json(new APIResponse(401, null, "Invalid refresh token"));
+      throw new APIError(401, "Invalid refresh token");
     }
-
-    const newAccessToken = jwt.sign(
-      { _id: user._id, role: user.role },
-      process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "1h" }
-    );
+    const newAccessToken = generateAccessToken(user)
+    // const newAccessToken = jwt.sign(
+    //   { _id: user._id, role: user.role },
+    //   process.env.JWT_SECRET,
+    //   { expiresIn: "1h" }
+    // );
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    };
 
     return res
       .status(200)
+      .cookie("accessToken", newAccessToken, cookieOptions)
       .json(
         new APIResponse(200, { accessToken: newAccessToken }, "Token refreshed")
       );
   } catch (error) {
-    return res
-      .status(403)
-      .json(new APIResponse(403, null, "Invalid or expired refresh token"));
+    throw new APIError(403, "Invalid or expired refresh token");
   }
 });
 
@@ -308,5 +311,5 @@ export {
   getUserByEmail,
   deleteUser,
   getCurrentUser,
-  refreshAccessToken
-}
+  refreshAccessToken,
+};
