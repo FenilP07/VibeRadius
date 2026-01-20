@@ -19,24 +19,24 @@ const authService = {
     return await apiClient.get(`${authApiPrefix}/verify-token`);
   },
 
-  refreshToken: async () => {
-    return await apiClient.get(`${authApiPrefix}/refresh-token`);
-  },
+  // refreshToken: async () => {
+  //   return await apiClient.get(`${authApiPrefix}/refresh-token`);
+  // },
 
-  getCurrentUser: async (userId) => {
-    return await apiClient.get(`${authApiPrefix}/me`);
-  },
+  // getCurrentUser: async (userId) => {
+  //   return await apiClient.get(`${authApiPrefix}/me`);
+  // },
 
-  forgotPassword: async (email) => {
-    return await apiClient.post(`${authApiPrefix}/forgot-password`, { email });
-  },
+  // forgotPassword: async (email) => {
+  //   return await apiClient.post(`${authApiPrefix}/forgot-password`, { email });
+  // },
 
-  resetPassword: async (token, password) => {
-    return await apiClient.post(`${authApiPrefix}/reset-password/`, {
-      token,
-      password,
-    });
-  },
+  // resetPassword: async (token, password) => {
+  //   return await apiClient.post(`${authApiPrefix}/reset-password/`, {
+  //     token,
+  //     password,
+  //   });
+  // },
 };
 
 export { authService };

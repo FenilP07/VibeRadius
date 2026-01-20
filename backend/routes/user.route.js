@@ -13,16 +13,17 @@ import { isLoggedIn } from "../middlewares/auth.middleware.js";
 
 const authRouter = Router();
 
+// Public routes
 authRouter.post("/register", registerUser);
 authRouter.post("/login", loginUser);
-authRouter.post("/logout", isLoggedIn, logoutUser);
-
-authRouter.get("/verify-token", isLoggedIn, getCurrentUser);
 authRouter.post("/refresh-token", refreshAccessToken);
 
-authRouter.get("/email/:email", getUserByEmail);
+// Protected routes
+authRouter.post("/logout", isLoggedIn, logoutUser);
+authRouter.get("/verify-token", isLoggedIn, getCurrentUser);
 
-authRouter.get("/:id", getUserById);
-authRouter.delete("/:id", deleteUser);
+authRouter.get("/email/:email", isLoggedIn, getUserByEmail);
+authRouter.get("/:id", isLoggedIn, getUserById);
+// authRouter.delete("/:id", isLoggedIn, deleteUser);
 
 export default authRouter;

@@ -5,59 +5,72 @@ const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true,
   timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { "Content-Type": "application/json" },
 });
 
-const shouldNotCheckAuth = (url) => {
-  const noAuthPaths = ["/auth/login", "/auth/register", "/api/auth/refresh-token"];
-  return noAuthPaths.some((path) => url.includes(path));
-}
+// Queue to handle multiple requests while refreshing token
+let isRefreshing = false;
+let failedQueue = [];
 
-// Response interceptor - runs after every response
+const processQueue = (error, success = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) prom.reject(error);
+    else prom.resolve(success);
+  });
+  failedQueue = [];
+};
+
 apiClient.interceptors.response.use(
-  (response) => {
-    // 200 OK
-    return response;
-  },
+  (response) => response,
   async (error) => {
-    // Handle 401 Unauthorized errors
-    if (error.response?.status === 401) {
-      console.warn("Unauthorized request, token expired or missing.");
+    const originalRequest = error.config;
+    if (error.response?.status !== 401) return Promise.reject(error);
 
-      const originalRequest = error.config;
+    const skipUrls = [
+      "/api/auth/login",
+      "/api/auth/register",
+      "/api/auth/refresh-token",
+      "/api/auth/logout",
+    ];
 
-      // Prevent infinite loops by checking if this is a retry
-      if (!originalRequest._retried && !shouldNotCheckAuth(originalRequest.url)) {
-        originalRequest._retried = true;
-        console.log("Attempting to refresh token...", originalRequest.url);
+    if (skipUrls.some((url) => originalRequest.url.includes(url))) {
+      return Promise.reject(error);
+    }
 
-        try {
-          const result = await useAuthStore.getState().refreshToken();
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      })
+        .then(() => apiClient(originalRequest))
+        .catch((err) => Promise.reject(err));
+    }
 
-          if (result.success) {
-            // Retry the original request with refreshed token
-            return apiClient(originalRequest);
-          }
-        } catch (e) {
-          console.error("Error during token refresh:", e);
-          // Redirect to login on token refresh failure
-          window.location.href = "/auth/login";
+    if (!originalRequest._retry) {
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        await apiClient.post("/api/auth/refresh-token");
+
+        processQueue(null, true);
+
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        await useAuthStore.getState().logout();
+
+        if (!window.location.pathname.includes("/auth/login")) {
+          window.location.replace("/auth/login");
         }
+
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
-
-      // Redirect to login if token refresh failed
-      window.location.href = "/auth/login";
     }
 
-    if (error.response?.status === 500) {
-      console.error("Server error:", error.response.data);
-    }
-
-    // This allows your local try/catch to see the error too.
     return Promise.reject(error);
   }
-)
+);
 
 export default apiClient;

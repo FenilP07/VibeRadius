@@ -2,20 +2,25 @@ import { useEffect, useRef } from "react";
 import useAuthStore from "../store/authStore";
 
 export const useAuthInit = () => {
-  const verifyToken = useAuthStore((state) => state.verifyToken);
   const isLoading = useAuthStore((state) => state.isLoading);
-  const hasInitialized = useRef(false);
+  const isInitializing = useAuthStore((state) => state.isInitializing);
+  const user = useAuthStore((state) => state.user);
+  const verifyToken = useAuthStore((state) => state.verifyToken);
+  const hasRun = useRef(false);
 
   useEffect(() => {
-    if (hasInitialized.current) return;
+    if (hasRun.current) return;
+    hasRun.current = true;
 
-    hasInitialized.current = true;
+    console.log("🔐 Initializing auth session...");
 
-    // Call verifyToken once, ignore errors for now
-    verifyToken().catch((err) => {
-      console.warn("verifyToken failed:", err.message || err);
-    });
-  }, [verifyToken]);
+    if (!user) {
+      // Show loader on first app load
+      verifyToken();
+    } else {
+      useAuthStore.setState({ isInitializing: false });
+    }
+  }, [verifyToken, user]);
 
-  return { isLoading };
+  return { isAuthLoading: isLoading || isInitializing };
 };
