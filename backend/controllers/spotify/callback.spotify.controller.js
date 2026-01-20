@@ -14,7 +14,7 @@ const handleSpotifyCallback = async(req, res) => {
 
     const {code, state} = req.query;
 
-
+    logger.info(`User info in handleSpotifyCallback ${req.user}`)
     if (state === null) {
     throw new APIError(400, 'State mismatch!');
     }
@@ -66,7 +66,7 @@ const handleSpotifyCallback = async(req, res) => {
             // get user id
             // TODO -- Replace this part with JWT later
             // once we finish with user authentication
-            const userId = req.user?._id || "696b096e8e8eadeb3b3dea5b";
+            const userId = req.user?._id;
 
 
             if( !userId ){
