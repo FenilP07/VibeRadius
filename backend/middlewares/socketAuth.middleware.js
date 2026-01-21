@@ -1,4 +1,5 @@
 import logger from "../utils/logger.js";
+import jwt from "jsonwebtoken"
 
 const socketAuth = (socket, next) => {
   try {
