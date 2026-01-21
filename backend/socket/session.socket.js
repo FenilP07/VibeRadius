@@ -40,7 +40,7 @@ const registerSessionNamespace = (io) => {
         });
 
         callback({
-          uccess: true,
+          success: true,
           session: {
             _id: session._id,
             session_name: session.session_name,
