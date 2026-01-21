@@ -17,7 +17,7 @@ sessionRouter.post("/create", isLoggedIn, isHost, createSession);
 sessionRouter.get("/my", isLoggedIn, isHost, getMySession);
 sessionRouter.get("/dashboard", isLoggedIn, isHost, getDashboardData);
 sessionRouter.post("/join", joinSession);
-sessionRouter.delete("/:id/", isLoggedIn, isHost, deleteSession);
-sessionRouter.patch("/:id/status", isLoggedIn, isHost, sessionStatusChange);
+sessionRouter.delete("/:sessionId/", isLoggedIn, isHost, deleteSession);
+sessionRouter.patch("/:sessionId/status", isLoggedIn, isHost, sessionStatusChange);
 
 export default sessionRouter;
