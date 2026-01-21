@@ -43,7 +43,7 @@ const addToQueue = asyncHandler(async (req, res) => {
 const getSessionPlayback = asyncHandler(async (req, res) => {
   const { session_id } = req.params;
 
-  const sesssion = await Session.findById(session_id).populate({
+  const session = await Session.findById(session_id).populate({
     path: "current_track_id",
     populate: {
       path: "added_by",
