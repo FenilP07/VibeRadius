@@ -2,6 +2,12 @@ import React from 'react';
 import { FaPlay, FaStepForward, FaUsers, FaMusic, FaQrcode } from 'react-icons/fa';
 import { NavbarAdmin } from "../components/admin/NavbarAdmin";
 
+/**
+ * Render the session administration dashboard for a live café session.
+ *
+ * Displays the header with session status and action buttons, quick stats, a "Now Playing" card with playback controls and progress, and an upcoming requests queue.
+ * @returns {JSX.Element} A React element representing the session admin page UI.
+ */
 export default function SessionPage() {
   return (
     <div className="min-h-screen bg-surface-bg">

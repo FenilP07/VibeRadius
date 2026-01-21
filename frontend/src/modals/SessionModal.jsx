@@ -1,6 +1,15 @@
 import React from 'react';
 import { FaMusic, FaHashtag, FaMagic, FaTimes } from 'react-icons/fa';
 
+/**
+ * Render a modal UI for creating and launching a new session.
+ *
+ * @param {{isOpen: boolean, onClose: function, onCreate: function}} props
+ * @param {boolean} props.isOpen - Controls whether the modal is rendered.
+ * @param {function} props.onClose - Callback invoked when the modal is dismissed (backdrop click, close button, or Cancel).
+ * @param {function} props.onCreate - Callback invoked when the form is submitted to start a session.
+ * @returns {JSX.Element|null} The modal element when `isOpen` is true, or `null` when closed.
+ */
 export default function CreateSessionModal({ isOpen, onClose, onCreate }) {
   if (!isOpen) return null;
 

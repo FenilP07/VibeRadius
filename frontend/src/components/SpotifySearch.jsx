@@ -2,6 +2,14 @@ import { useState } from "react";
 import { searchTrack } from "../services/SpotifyService.js";
 import { Search, Music, Loader2, AlertCircle, PlayCircle, Plus } from "lucide-react";
 
+/**
+ * Render a search UI that queries Spotify and displays matching tracks.
+ *
+ * Renders an input and search button, shows loading and error states, and presents
+ * a list of track cards with album art, artists, and an add-to-queue action; if no
+ * results are found after a search, shows a centered empty state.
+ * @returns {JSX.Element} The search interface with results, loading, and error states.
+ */
 export default function SpotifySearch() {
   const [query, setQuery] = useState("");
   const [tracks, setTracks] = useState([]);

@@ -27,6 +27,14 @@ const formatDateTime = (isoDate) => {
   });
 };
 
+/**
+ * Render the Host Dashboard page for managing live and past music sessions.
+ *
+ * Renders the dashboard UI, fetches dashboard data when mounted, and provides
+ * controls for creating new sessions (opens a modal) and navigating to session dashboards.
+ *
+ * @returns {JSX.Element} The Host Dashboard React element.
+ */
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 const navigate = useNavigate();

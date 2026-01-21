@@ -8,6 +8,14 @@ import HomePage from "./pages/homePage.jsx";
 import SessionPage from "./pages/SessionPage.jsx";
 import { HostProfile } from "./pages/admin/HostProfile.jsx";
 
+/**
+ * Defines the application's route configuration for main pages and utilities.
+ *
+ * Renders a Routes element with Route entries for "/", "/hostprofile", "/search", "/session",
+ * "/styleguide", "/admin/dashboard", "/login", and "/register".
+ *
+ * @returns {JSX.Element} The configured router element.
+ */
 export default function AppRoutes() {
   return (
     <Routes>
