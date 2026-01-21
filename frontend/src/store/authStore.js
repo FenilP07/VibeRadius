@@ -62,7 +62,12 @@ const useAuthStore = create((set, get) => ({
     } catch (err) {
       console.warn("Server logout failed. Clearing client state anyway.");
     } finally {
-      set({ user: null, isAuthenticated: false, error: null });
+      set({
+        user: null,
+        isAuthenticated: false,
+        error: null,
+        isLoading: false,
+      });
       localStorage.removeItem("accessToken");
       localStorage.removeItem("spotifyConnected");
       disconnectSocket("/session");
@@ -71,12 +76,10 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
-  verifyToken: async () => {
-    const state = get();
-    if (state.isInitializing || state.isLoading) return state.isAuthenticated;
+  verifyToken: async ({ silent = false } = {}) => {
+    if (!silent) set({ isLoading: true, error: null });
 
     try {
-      set({ isInitializing: true, isLoading: true, error: null });
       const response = await authService.verifyToken();
       const { user } = response.data.data;
 
@@ -95,7 +98,7 @@ const useAuthStore = create((set, get) => ({
         isInitializing: false,
       });
       localStorage.removeItem("accessToken");
-      return false;
+     return { success: false };
     }
   },
 
