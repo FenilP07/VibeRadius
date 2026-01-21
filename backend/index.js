@@ -21,13 +21,7 @@ app.set("io", io);
 logger.info("io created", !!io)
 registerSockets(io);
 
-const sessionNamespace = io.of("/session");
-
-sessionNamespace.use(socketAuth);
-
-sessionNamespace.on("connection", (socket) => {
-  socket.on("disconnect", () => {});
-});
+connectDB()
 
 connectDB()
   .then(() => {
