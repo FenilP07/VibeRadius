@@ -34,9 +34,9 @@ const addToQueue = asyncHandler(async (req, res) => {
     total_votes: 0,
   });
 
-  return res.status(201).json(
-    new APIResponse(201, { queueTrack }, "Track added to queue")
-  );
+  return res
+    .status(201)
+    .json(new APIResponse(201, { queueTrack }, "Track added to queue"));
 });
 
 //get session playback
@@ -120,13 +120,14 @@ const playNextTrack = asyncHandler(async (req, res) => {
     status: "queued",
   }).sort({ total_votes: -1, createdAt: 1 });
 
-  if (current_track_id) {
+  if (session.current_track_id) {
     await Queue.findByIdAndUpdate(session.current_track_id, {
       status: "played",
     });
   }
 
-  ((nextTrack.status = "playing"), await nextTrack.save());
+  nextTrack.status = "playing";
+  await nextTrack.save();
 
   session.current_track_id = nextTrack._id;
   await session.save();
