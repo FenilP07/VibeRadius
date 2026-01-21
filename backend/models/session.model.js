@@ -29,6 +29,8 @@ const sessionSchema = new Schema(
           enum: ["active", "inactive", "left", "kicked"],
           default: "active",
         },
+        type: Schema.Types.ObjectId,
+        ref: "User",
       },
     ],
     session_status: {
@@ -36,11 +38,11 @@ const sessionSchema = new Schema(
       enum: ["active", "inactive", "halt"],
       default: "inactive",
     },
-    current_track_id:{
+    current_track_id: {
       type: Schema.Types.ObjectId,
       ref: "Queue",
       default: null,
-    }
+    },
   },
   {
     timestamps: true,
