@@ -6,12 +6,14 @@ import Login from "./pages/auth/Login.jsx";
 import Register from "./pages/auth/Register.jsx";
 import HomePage from "./pages/homePage.jsx";
 import SpotifyPlayer from "./pages/SpotifyPlayer.jsx";
+import SessionPage from "./pages/SessionPage.jsx"
 
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* <Route path="/" element={<HomePage />}></Route> */}
-
+      <Route path="/" element={<HomePage />}></Route>
+      <Route path="/search" element={<SpotifySearch />}></Route>
+      <Route path="/session" element={<SessionPage />}></Route>
       {/* For Style Guide */}
       <Route path="/styleguide" element={<StyleGuide />} />
 

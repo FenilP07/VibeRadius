@@ -9,19 +9,23 @@ import { FaSpotify, FaMusic, FaQrcode } from "react-icons/fa";
 import { MdQueueMusic } from "react-icons/md";
 import Button from "../../components/ui/Button";
 import "./adminDashboard.css";
+import useAuthStore from "../../store/authStore";
 
 export const AdminDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const spotifyConnected = useAuthStore((state) => state.spotifyConnected);
+  const setspotifyConnected = useAuthStore(
+    (state) => state.setspotifyConnected
+  );
 
   // Check if redirected from Spotify
   useEffect(() => {
     const spotifyStatus = searchParams.get("spotify");
 
     if (spotifyStatus === "connected") {
-      setIsConnected(true);
+      setspotifyConnected(true)
       setShowSuccess(true);
 
       // Remove query param from URL (clean up)
@@ -35,7 +39,7 @@ export const AdminDashboard = () => {
     if (spotifyStatus === "error") {
       console.error("Spotify connection failed");
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams,setspotifyConnected]);
 
   // Handle Spotify Login
   const handleSpotifyLogin = () => {
@@ -57,7 +61,6 @@ export const AdminDashboard = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-surface text-text-primary">
-
       {/* ================= SUCCESS TOAST ================= */}
       {showSuccess && (
         <div className="fixed top-20 right-6 bg-success-light text-success px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50 animate-fade-in">
@@ -88,12 +91,9 @@ export const AdminDashboard = () => {
 
       {/* ================= MAIN CONTENT ================= */}
       <main className="relative z-10 flex items-center justify-center min-h-[calc(100vh-64px)] px-8 lg:px-16 xl:px-24">
-
         <div className="w-full max-w-6xl flex flex-col-reverse lg:flex-row items-center gap-8">
-
           {/* ---------- LEFT SECTION ---------- */}
           <section className="flex-1 py-12">
-
             <span className="text-primary font-medium tracking-widest uppercase text-sm">
               Welcome to VibeRadius
             </span>
@@ -107,7 +107,10 @@ export const AdminDashboard = () => {
 
             <p className="mt-8 text-lg text-text-primary/80 max-w-xl leading-relaxed">
               Customers scan. Songs queue. Your venue transforms into an
-              <span className="text-accent font-medium"> interactive music experience.</span>
+              <span className="text-accent font-medium">
+                {" "}
+                interactive music experience.
+              </span>
             </p>
 
             <div className="mt-10 flex flex-col gap-3">
@@ -127,6 +130,7 @@ export const AdminDashboard = () => {
                 desc="Direct integration with Spotify"
               />
             </div>
+<<<<<<< HEAD
 
 <button
   onClick={async () => {
@@ -155,16 +159,15 @@ export const AdminDashboard = () => {
   Test Spotify Token
 </button>
 
+=======
+>>>>>>> 951e176 (added flag for spotify connect)
           </section>
 
           {/* ---------- RIGHT SECTION ---------- */}
           <section className="flex-1 flex justify-center py-12">
-
             <div className="relative flex flex-col items-center text-center max-w-xs">
-
               {/* Animation + Central Orb */}
               <div className="relative w-44 h-44 mb-10">
-
                 <Lottie
                   animationData={waveAnimation}
                   loop
@@ -191,24 +194,26 @@ export const AdminDashboard = () => {
                     <FaMusic className="text-2xl text-white animate-float-rotate" />
                   </div>
                 </div>
-
               </div>
 
               {/* Title */}
               <h2 className="text-2xl font-bold text-accent-dark">
-                {isConnected ? "Spotify Connected" : "Connect Your Music"}
+                {spotifyConnected ? "Spotify Connected" : "Connect Your Music"}
               </h2>
 
               {/* Description */}
               <p className="mt-3 text-text-primary/70 text-sm leading-relaxed">
+<<<<<<< HEAD
                 {isConnected
+=======
+                {spotifyConnected
+>>>>>>> 951e176 (added flag for spotify connect)
                   ? "Your Spotify account is linked. Ready to start a session!"
-                  : "Link your Spotify account to start accepting song requests from customers"
-                }
+                  : "Link your Spotify account to start accepting song requests from customers"}
               </p>
 
               {/* CTA Button */}
-              {isConnected ? (
+              {spotifyConnected ? (
                 <Button
                   variant="primary"
                   className="mt-10 w-full h-14 text-base font-semibold shadow-[0_8px_30px_rgba(45,138,78,0.25)] flex items-center gap-3 justify-center bg-success hover:bg-success/90"
@@ -252,15 +257,13 @@ export const AdminDashboard = () => {
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                {isConnected ? "Ready to start session" : "Takes less than 30 seconds • Secure OAuth"}
+                {spotifyConnected
+                  ? "Ready to start session"
+                  : "Takes less than 30 seconds • Secure OAuth"}
               </span>
-
             </div>
-
           </section>
-
         </div>
-
       </main>
     </div>
   );

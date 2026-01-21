@@ -1,30 +1,33 @@
 import { create } from "zustand";
 import { authService } from "../services/authService.js";
-import { io } from "socket.io-client";
+// import { io } from "socket.io-client";
 
 const useAuthStore = create((set, get) => ({
-  
   user: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
   isInitializing: false,
-  socket: null, 
+  socket: null,
+  spotifyConnected: localStorage.getItem("spotifyConnected") === "true",
 
-  
   setUser: (user) => set({ user, isAuthenticated: !!user }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
   clearError: () => set({ error: null }),
+  setSpotifyConnected: (value) => {
+    set({
+      spotifyConnected: value,
+    });
+    localStorage.setItem("spotifyConnectedd", value ? "true" : false);
+  },
 
-  
   register: async (userData) => {
     try {
       set({ isLoading: true, error: null });
       const response = await authService.register(userData);
       const { user, accessTokens } = response.data.data;
 
-      
       localStorage.setItem("accessToken", accessTokens);
 
       set({ user, isAuthenticated: true, isLoading: false, error: null });
@@ -36,14 +39,12 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
-  
   login: async (credentials) => {
     try {
       set({ isLoading: true, error: null });
       const response = await authService.login(credentials);
       const { user, accessTokens } = response.data.data;
 
-      
       localStorage.setItem("accessToken", accessTokens);
 
       set({ user, isAuthenticated: true, isLoading: false, error: null });
@@ -63,8 +64,7 @@ const useAuthStore = create((set, get) => ({
     } finally {
       set({ user: null, isAuthenticated: false, error: null });
       localStorage.removeItem("accessToken");
-
-      
+      localStorage.removeItem("spotifyConnected");
       const socket = get().socket;
       if (socket) {
         socket.disconnect();
@@ -73,14 +73,13 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
-  
   verifyToken: async () => {
     const state = get();
     if (state.isInitializing || state.isLoading) return state.isAuthenticated;
 
     try {
       set({ isInitializing: true, isLoading: true, error: null });
-      const response = await authService.verifyToken(); 
+      const response = await authService.verifyToken();
       const { user } = response.data.data;
 
       set({
@@ -101,11 +100,9 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
-  
   updateUser: (userData) =>
     set((state) => ({ user: { ...state.user, ...userData } })),
 
-  
   connectToSession: (sessionCode) => {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
@@ -113,23 +110,19 @@ const useAuthStore = create((set, get) => ({
       return null;
     }
 
-    
     const socket = io("http://localhost:3000/session", {
       auth: { token: accessToken },
     });
 
-    
     socket.on("connect", () => {
       console.log("Connected to session socket:", socket.id);
       socket.emit("join-session", { sessionCode });
     });
 
-    
     socket.on("user-joined", (data) => {
       console.log("User joined session:", data);
     });
 
-    
     socket.on("disconnect", () => {
       console.log("Socket disconnected");
     });
