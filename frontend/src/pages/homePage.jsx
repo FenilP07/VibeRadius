@@ -14,6 +14,7 @@ import {
 import { NavbarAdmin } from "../components/admin/NavbarAdmin";
 import CreateSessionModal from "../modals/SessionModal";
 import useSessionStore from "../store/sessionStore";
+import { useNavigate } from "react-router-dom";
 
 // -----------------------
 // Helper: format date + time
@@ -28,7 +29,7 @@ const formatDateTime = (isoDate) => {
 
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+const navigate = useNavigate();
   const {
     activeSessions,
     pastSessions,
@@ -115,7 +116,10 @@ export default function HomePage() {
                           </div>
                         </div>
                       </div>
-                      <button className="bg-[#5C4033] hover:bg-[#3d2b22] text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ml-auto md:ml-0 shadow-lg shadow-[#5C4033]/10">
+                      <button className="bg-[#5C4033] hover:bg-[#3d2b22] text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ml-auto md:ml-0 shadow-lg shadow-[#5C4033]/10"
+                      onClick={()=>{
+                        navigate("/session")
+                      }}>
                         Open Dashboard <FaChevronRight size={12} />
                       </button>
                     </div>
