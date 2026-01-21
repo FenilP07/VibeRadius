@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { Eye, EyeOff, Music, AlertCircle, Headphones } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, Music, AlertCircle, Headphones, ArrowRight } from 'lucide-react';
 import useAuthStore from '../../store/authStore.js';
 
 const Login = () => {
@@ -47,22 +47,18 @@ const Login = () => {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden bg-[#FEF3EB]">
-      
-      {/* ================= BACKGROUND VISUALS ================= */}
-      {/* Animated Mesh Gradients */}
+      {/* Background Visuals */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#E07A3D]/20 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#5C4033]/10 rounded-full blur-[120px]" />
       </div>
 
-      {/* Grainy Texture Overlay */}
+      {/* Grainy Texture */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} 
       />
 
-      {/* ================= MAIN CARD ================= */}
       <div className="relative z-10 w-full max-w-md">
-        
         {/* Branding */}
         <div className="text-center mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="relative inline-flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-[#E07A3D] to-[#f4a261] rounded-3xl shadow-2xl shadow-[#E07A3D]/30 mb-6 rotate-3">
@@ -78,8 +74,6 @@ const Login = () => {
         {/* Glassmorphism Form */}
         <div className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(92,64,51,0.1)] p-10 border border-white/50 animate-in fade-in zoom-in-95 duration-500">
           <form onSubmit={handleSubmit} className="space-y-6">
-            
-            {/* Error Notification */}
             {error && (
               <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-center gap-3 text-red-600 animate-in slide-in-from-top-2">
                 <AlertCircle size={18} />
@@ -87,31 +81,35 @@ const Login = () => {
               </div>
             )}
 
-            {/* Email Field */}
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest text-[#5C4033]/50 ml-1">Email</label>
+              <label htmlFor="email" className="text-xs font-bold uppercase tracking-widest text-[#5C4033]/50 ml-1">Email</label>
               <input
+                id="email"
                 type="email"
                 name="email"
+                autoComplete="email"
+                disabled={isLoading}
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="host@venue.com"
-                className={`w-full px-5 py-4 rounded-2xl bg-white/50 border ${validationErrors.email ? 'border-red-400' : 'border-white'} focus:border-[#E07A3D] focus:ring-4 focus:ring-[#E07A3D]/5 transition-all outline-none text-[#5C4033] font-medium shadow-inner`}
+                className={`w-full px-5 py-4 rounded-2xl bg-white/50 border ${validationErrors.email ? 'border-red-400' : 'border-white'} focus:border-[#E07A3D] focus:ring-4 focus:ring-[#E07A3D]/5 transition-all outline-none text-[#5C4033] font-medium shadow-inner disabled:opacity-50`}
               />
-              {validationErrors.email && <p className="text-[10px] text-red-500 font-bold ml-2 uppercase">{validationErrors.email}</p>}
+              {validationErrors.email && <p className="text-[10px] text-red-500 font-bold ml-2 uppercase tracking-tight">{validationErrors.email}</p>}
             </div>
 
-            {/* Password Field */}
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest text-[#5C4033]/50 ml-1">Password</label>
+              <label htmlFor="password" className="text-xs font-bold uppercase tracking-widest text-[#5C4033]/50 ml-1">Password</label>
               <div className="relative">
                 <input
+                  id="password"
                   type={showPassword ? 'text' : 'password'}
                   name="password"
+                  autoComplete="current-password"
+                  disabled={isLoading}
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className={`w-full px-5 py-4 rounded-2xl bg-white/50 border ${validationErrors.password ? 'border-red-400' : 'border-white'} focus:border-[#E07A3D] focus:ring-4 focus:ring-[#E07A3D]/5 transition-all outline-none text-[#5C4033] font-medium shadow-inner pr-14`}
+                  className={`w-full px-5 py-4 rounded-2xl bg-white/50 border ${validationErrors.password ? 'border-red-400' : 'border-white'} focus:border-[#E07A3D] focus:ring-4 focus:ring-[#E07A3D]/5 transition-all outline-none text-[#5C4033] font-medium shadow-inner pr-14 disabled:opacity-50`}
                 />
                 <button
                   type="button"
@@ -123,17 +121,15 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Extras */}
             <div className="flex items-center justify-between px-1">
               <label className="flex items-center gap-2 cursor-pointer group">
                 <input type="checkbox" name="rememberMe" checked={formData.rememberMe} onChange={handleChange} 
                   className="w-4 h-4 rounded-lg border-gray-300 text-[#E07A3D] focus:ring-[#E07A3D]" />
                 <span className="text-sm text-[#5C4033]/60 group-hover:text-[#5C4033] transition-colors">Remember</span>
               </label>
-              <button type="button" className="text-sm font-bold text-[#E07A3D] hover:text-[#C4612A]">Reset?</button>
+              <button type="button" className="text-sm font-bold text-[#E07A3D] hover:text-[#C4612A]">Forgot?</button>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -147,13 +143,12 @@ const Login = () => {
                 </div>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  Enter Dashboard <Music size={16} className="group-hover:rotate-12 transition-transform" />
+                  Enter Dashboard <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </span>
               )}
             </button>
           </form>
 
-<<<<<<< HEAD
           {/* Register Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
@@ -166,20 +161,8 @@ const Login = () => {
                 Register here
               </button>
             </p>
-=======
-          {/* Footer Link */}
-          <div className="mt-8 text-center">
-            <button onClick={() => navigate('/register')} className="text-sm text-[#5C4033]/60">
-              New venue? <span className="text-[#E07A3D] font-bold hover:underline">Register now</span>
-            </button>
->>>>>>> 13d0ae7 (added some mockups for frontend from gemini)
           </div>
         </div>
-
-        {/* Branding Footer */}
-        <p className="text-center mt-10 text-[10px] font-bold text-[#5C4033]/30 uppercase tracking-[0.3em]">
-          Powered by VibeRadius Engine • 2026
-        </p>
       </div>
     </div>
   );
