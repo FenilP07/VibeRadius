@@ -11,6 +11,10 @@ const addToQueue = asyncHandler(async (req, res) => {
   const { session_id, track_id, title, artists, track_image } = req.body;
 
   const session = await Session.findById(session_id);
+  if (!session) {
+    throw new APIError(404, "Session not found");
+  }
+
   const existingTrack = await Queue.findOne({
     session_id,
     track_id,
@@ -18,17 +22,21 @@ const addToQueue = asyncHandler(async (req, res) => {
   if (existingTrack) {
     throw new APIError(400, "Track already in queue");
   }
-});
 
-const queueTrack = await Queue.create({
-  session_id,
-  track_id,
-  title,
-  artists,
-  track_image,
-  added_by: userId,
-  status: "queued",
-  total_votes: 0,
+  const queueTrack = await Queue.create({
+    session_id,
+    track_id,
+    title,
+    artists,
+    track_image,
+    added_by: userId,
+    status: "queued",
+    total_votes: 0,
+  });
+
+  return res.status(201).json(
+    new APIResponse(201, { queueTrack }, "Track added to queue")
+  );
 });
 
 //get session playback
