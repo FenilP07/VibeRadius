@@ -50,7 +50,7 @@ const registerSessionNamespace = (io) => {
         });
 
         logger.info(`User ${userId} joined session ${sessionCode}`, {
-          secketId: socket.id,
+          socketId: socket.id,
         });
       } catch (err) {
         logger.error("Error joining session", { error: err.message });
