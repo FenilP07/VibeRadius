@@ -26,8 +26,6 @@ logger.info("io created", !!io)
 registerSockets(io);
 
 connectDB()
-
-connectDB()
   .then(() => {
     server.listen(PORT, () => {
       logger.info(`server is running on port ${PORT}`);
