@@ -98,7 +98,7 @@ const useAuthStore = create((set, get) => ({
         isInitializing: false,
       });
       localStorage.removeItem("accessToken");
-     return { success: false };
+      return { success: false };
     }
   },
 
