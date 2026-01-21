@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { authService } from "../services/authService.js";
+import useSessionStore from "./sessionStore.js";
+
 // import { io } from "socket.io-client";
 
 const useAuthStore = create((set, get) => ({
@@ -70,6 +72,9 @@ const useAuthStore = create((set, get) => ({
         socket.disconnect();
         set({ socket: null });
       }
+
+      const sessionStore= useSessionStore.getState();
+      sessionStore.reset();
     }
   },
 
