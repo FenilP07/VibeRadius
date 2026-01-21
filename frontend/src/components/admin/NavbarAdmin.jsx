@@ -13,7 +13,7 @@ export const NavbarAdmin = ({ title = "VibeRadius" }) => {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/auth/login");
+    navigate("/login");
   };
   return (
     <nav className="bg-surface/70 backdrop-blur-lg border-b border-primary-subtle h-16 flex items-center px-8 lg:px-16 xl:px-24">

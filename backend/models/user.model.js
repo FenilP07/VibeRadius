@@ -1,5 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import logger from "../utils/logger.js";
 
 const userSchema = new Schema(
   {
@@ -23,7 +25,7 @@ const userSchema = new Schema(
     password: {
       type: String,
       required: true,
-      minlength: 8,
+      minLength: 8,
     },
     role: {
       type: String,
@@ -35,25 +37,28 @@ const userSchema = new Schema(
       default: null,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-// Hash password before saving
+// pre hook to hash password
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next;
   try {
-    const saltRounds = 10;
-    this.password = await bcrypt.hash(this.password, saltRounds);
+    if (!this.isModified("password")) return next;
+    const saltRound = 10; // number of character in the password
+    this.password = await bcrypt.hash(this.password, saltRound);
     next;
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
   }
 });
 
-// Compare password
+// password check
 userSchema.methods.comparePassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
 
 const User = mongoose.model("User", userSchema);
+
 export default User;

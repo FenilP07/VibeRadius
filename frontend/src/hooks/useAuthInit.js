@@ -12,10 +12,7 @@ export const useAuthInit = () => {
     if (hasRun.current) return;
     hasRun.current = true;
 
-    console.log("🔐 Initializing auth session...");
-
     if (!user) {
-      // Show loader on first app load
       verifyToken();
     } else {
       useAuthStore.setState({ isInitializing: false });
