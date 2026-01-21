@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
-import { LogOut, User, Music } from "lucide-react"; // Matching our icon set
+import { LogOut, User, Music } from "lucide-react";
 
 export const NavbarAdmin = ({ title = "VibeRadius" }) => {
   const navigate = useNavigate();
@@ -37,8 +37,11 @@ export const NavbarAdmin = ({ title = "VibeRadius" }) => {
         {/* Admin Actions */}
         <div className="flex items-center gap-4">
           
-          {/* Enhanced User Badge */}
-          <div className="hidden sm:flex items-center gap-3 bg-white/80 border border-[#5C4033]/5 pl-2 pr-4 py-1.5 rounded-2xl shadow-sm">
+          {/* Enhanced User Badge - Now Clickable */}
+          <button
+            onClick={() => navigate("/hostprofile")}
+            className="hidden sm:flex items-center gap-3 bg-white/80 border border-[#5C4033]/5 pl-2 pr-4 py-1.5 rounded-2xl shadow-sm hover:shadow-md hover:border-[#E07A3D]/20 hover:bg-white transition-all active:scale-95 cursor-pointer"
+          >
             <div className="w-8 h-8 bg-gradient-to-br from-[#E07A3D]/20 to-[#5C4033]/10 rounded-xl flex items-center justify-center text-[#E07A3D] font-bold text-xs border border-[#E07A3D]/10">
               {initials}
             </div>
@@ -51,7 +54,7 @@ export const NavbarAdmin = ({ title = "VibeRadius" }) => {
                 <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Host Mode</span>
               </div>
             </div>
-          </div>
+          </button>
 
           <div className="w-px h-8 bg-[#5C4033]/10 mx-2 hidden sm:block" />
 
