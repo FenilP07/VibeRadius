@@ -11,8 +11,6 @@ import Button from "../../components/ui/Button";
 import "./adminDashboard.css";
 
 export const AdminDashboard = () => {
-  // Spotify Connection State
-
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
@@ -59,6 +57,7 @@ export const AdminDashboard = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-surface text-text-primary">
+
       {/* ================= SUCCESS TOAST ================= */}
       {showSuccess && (
         <div className="fixed top-20 right-6 bg-success-light text-success px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50 animate-fade-in">
@@ -89,9 +88,12 @@ export const AdminDashboard = () => {
 
       {/* ================= MAIN CONTENT ================= */}
       <main className="relative z-10 flex items-center justify-center min-h-[calc(100vh-64px)] px-8 lg:px-16 xl:px-24">
+
         <div className="w-full max-w-6xl flex flex-col-reverse lg:flex-row items-center gap-8">
+
           {/* ---------- LEFT SECTION ---------- */}
           <section className="flex-1 py-12">
+
             <span className="text-primary font-medium tracking-widest uppercase text-sm">
               Welcome to VibeRadius
             </span>
@@ -105,10 +107,7 @@ export const AdminDashboard = () => {
 
             <p className="mt-8 text-lg text-text-primary/80 max-w-xl leading-relaxed">
               Customers scan. Songs queue. Your venue transforms into an
-              <span className="text-accent font-medium">
-                {" "}
-                interactive music experience.
-              </span>
+              <span className="text-accent font-medium"> interactive music experience.</span>
             </p>
 
             <div className="mt-10 flex flex-col gap-3">
@@ -129,13 +128,43 @@ export const AdminDashboard = () => {
               />
             </div>
 
+<button
+  onClick={async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/spotify/test-spotify-token', {
+        method: 'GET',
+        credentials: 'include',   // ← this is correct — sends cookies
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(
+          `Request failed with status ${res.status}: ${errorData.message || 'No details'}`
+        );
+      }
+
+      const data = await res.json();
+      alert('Success! Token is fresh: ' + (data.message || 'Response received'));
+      console.log('Full response:', data);
+    } catch (err) {
+      console.error('Test failed:', err);
+      alert('Error: ' + (err.message || 'Something went wrong'));
+    }
+  }}
+>
+  Test Spotify Token
+</button>
+
           </section>
 
           {/* ---------- RIGHT SECTION ---------- */}
           <section className="flex-1 flex justify-center py-12">
+
             <div className="relative flex flex-col items-center text-center max-w-xs">
+
               {/* Animation + Central Orb */}
               <div className="relative w-44 h-44 mb-10">
+
                 <Lottie
                   animationData={waveAnimation}
                   loop
@@ -162,6 +191,7 @@ export const AdminDashboard = () => {
                     <FaMusic className="text-2xl text-white animate-float-rotate" />
                   </div>
                 </div>
+
               </div>
 
               {/* Title */}
@@ -173,7 +203,8 @@ export const AdminDashboard = () => {
               <p className="mt-3 text-text-primary/70 text-sm leading-relaxed">
                 {isConnected
                   ? "Your Spotify account is linked. Ready to start a session!"
-                  : "Link your Spotify account to start accepting song requests from customers"}
+                  : "Link your Spotify account to start accepting song requests from customers"
+                }
               </p>
 
               {/* CTA Button */}
@@ -221,13 +252,15 @@ export const AdminDashboard = () => {
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                {isConnected
-                  ? "Ready to start session"
-                  : "Takes less than 30 seconds • Secure OAuth"}
+                {isConnected ? "Ready to start session" : "Takes less than 30 seconds • Secure OAuth"}
               </span>
+
             </div>
+
           </section>
+
         </div>
+
       </main>
     </div>
   );

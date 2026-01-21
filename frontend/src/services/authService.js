@@ -1,5 +1,6 @@
-import apiClient from "../utils/apiClient.js";
+import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 const authApiPrefix = "/api/auth";
 
 const authService = {
@@ -25,4 +26,4 @@ const authService = {
   },
 };
 
-export { authService };
+export default apiClient;

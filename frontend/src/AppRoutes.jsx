@@ -17,11 +17,9 @@ export default function AppRoutes() {
       {/* For Admin Dashboard */}
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
-            {/* For Authentication */}
-            <Route path='/auth/login' element={<Login/>}></Route>
-            <Route path='/auth/register' element={<Register/>}></Route>
-
-        </Routes>
-    )
-
+      {/* For Authentication */}
+      <Route path="/login" element={<Login />}></Route>
+      <Route path="/register" element={<Register />}></Route>
+    </Routes>
+  );
 }
