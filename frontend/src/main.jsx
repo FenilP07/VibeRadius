@@ -3,15 +3,37 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import useAuthStore from "./store/authStore";
+import { authService } from "./services/authService";
 import "./index.css";
 
 function Root() {
   const isInitializing = useAuthStore((state) => state.isInitializing);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const verifyToken = useAuthStore((state) => state.verifyToken);
+  const logout = useAuthStore((state) => state.logout);
 
+  // Check auth on initial load
   useEffect(() => {
     verifyToken();
-  }, []);
+  }, [verifyToken]);
+
+  // Silent refresh timer - runs every 14 minutes
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const interval = setInterval(async () => {
+      console.log('[Auth] Refreshing token...');
+      try {
+        await authService.refreshToken();
+        console.log('[Auth] Token refreshed ✓');
+      } catch (error) {
+        console.error('[Auth] Refresh failed, logging out');
+        await logout();
+      }
+    }, 14 * 60 * 1000); // 14 minutes
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, logout]);
 
   if (isInitializing) {
     return (

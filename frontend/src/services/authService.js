@@ -3,8 +3,8 @@ import apiClient from "../utils/apiClient.js";
 const authApiPrefix = "/api/auth";
 
 const authService = {
-  login: async (Credentials) => {
-    return await apiClient.post(`${authApiPrefix}/login`, Credentials);
+  login: async (credentials) => {
+    return await apiClient.post(`${authApiPrefix}/login`, credentials);
   },
 
   register: async (userData) => {
@@ -19,24 +19,10 @@ const authService = {
     return await apiClient.get(`${authApiPrefix}/verify-token`);
   },
 
-  // refreshToken: async () => {
-  //   return await apiClient.get(`${authApiPrefix}/refresh-token`);
-  // },
-
-  // getCurrentUser: async (userId) => {
-  //   return await apiClient.get(`${authApiPrefix}/me`);
-  // },
-
-  // forgotPassword: async (email) => {
-  //   return await apiClient.post(`${authApiPrefix}/forgot-password`, { email });
-  // },
-
-  // resetPassword: async (token, password) => {
-  //   return await apiClient.post(`${authApiPrefix}/reset-password/`, {
-  //     token,
-  //     password,
-  //   });
-  // },
+  
+  refreshToken: async () => {
+    return await apiClient.post(`${authApiPrefix}/refresh-token`);
+  },
 };
 
 export { authService };
