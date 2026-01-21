@@ -1,4 +1,4 @@
-import apiClient from "./authService";
+import apiClient from "../utils/apiClient";
 const sessionApiPrefix = "/api/session";
 
 export const sessionService = {
