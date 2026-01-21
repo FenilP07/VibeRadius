@@ -8,17 +8,11 @@ const useAuthStore = create((set, get) => ({
   error: null,
   isInitializing: true,
 
-  // ---------------------
-  // Setters
-  // ---------------------
   setUser: (user) => set({ user, isAuthenticated: !!user }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
   clearError: () => set({ error: null }),
 
-  // ---------------------
-  // Register
-  // ---------------------
   register: async (userData) => {
     try {
       set({ isLoading: true, error: null });
@@ -34,9 +28,6 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
-  // ---------------------
-  // Login
-  // ---------------------
   login: async (credentials) => {
     try {
       set({ isLoading: true, error: null });
@@ -52,14 +43,11 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
-  // ---------------------
-  // Logout
-  // ---------------------
   logout: async () => {
     try {
       await authService.logout();
     } catch (err) {
-     console .warn("Server logout failed. Clearing client state anyway.");
+      console.warn("Server logout failed. Clearing client state anyway.");
     } finally {
       set({
         user: null,
@@ -71,9 +59,6 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
-  // ---------------------
-  // Verify token (silent or not)
-  // ---------------------
   verifyToken: async ({ silent = false } = {}) => {
     if (!silent) set({ isLoading: true, error: null });
 
@@ -99,9 +84,6 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
-  // ---------------------
-  // Update user locally
-  // ---------------------
   updateUser: (userData) =>
     set((state) => ({ user: { ...state.user, ...userData } })),
 }));

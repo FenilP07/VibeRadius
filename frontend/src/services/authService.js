@@ -1,4 +1,5 @@
 import apiClient from "../utils/apiClient.js";
+
 const authApiPrefix = "/api/auth";
 
 const authService = {
@@ -18,7 +19,6 @@ const authService = {
     return await apiClient.get(`${authApiPrefix}/verify-token`);
   },
 
-  
   refreshToken: async () => {
     return await apiClient.post(`${authApiPrefix}/refresh-token`);
   },

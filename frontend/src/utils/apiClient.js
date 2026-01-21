@@ -8,7 +8,6 @@ const apiClient = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Queue to handle multiple requests while refreshing token
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -51,9 +50,7 @@ apiClient.interceptors.response.use(
 
       try {
         await apiClient.post("/api/auth/refresh-token");
-
         processQueue(null, true);
-
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
