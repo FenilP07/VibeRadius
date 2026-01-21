@@ -3,7 +3,7 @@ import generateSessionCode from "../utils/generateSessionCode.js";
 import Session from "../models/session.model.js";
 import logger from "../utils/logger.js";
 import { APIResponse } from "../utils/ApiResponse.js";
-import {APIError} from "../utils/ApiError.js"
+import { APIError } from "../utils/ApiError.js";
 
 //create session
 const createSession = asyncHandler(async (req, res) => {
@@ -129,10 +129,111 @@ const deleteSession = asyncHandler(async (req, res) => {
     .json(new APIResponse(200, null, "Session deleted successfully"));
 });
 
+const getDashboardData = asyncHandler(async (req, res) => {
+  const hostId = req.user._id;
+
+  const activeSessions = await Session.aggregate([
+    {
+      $match: {
+        host_id: hostId,
+        session_status: "active",
+      },
+    },
+    {
+      $lookup: {
+        from: "queues",
+        let: {
+          sessionId: "$_id",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$session_id", "$$sessionId"] },
+                  { $eq: ["$status", "queued"] },
+                ],
+              },
+            },
+          },
+          { $count: "count" },
+        ],
+        as: "queueStats",
+      },
+    },
+    {
+      $project: {
+        id: "$_id",
+        name: "$session_name",
+        status: "$session_status",
+        songs: { $ifNull: [{ $arrayElemAt: ["$queueStats.count", 0] }, 0] },
+        listeners: { $size: "$participants" },
+      },
+    },
+  ]);
+
+  const pastSessions = await Session.aggregate([
+    {
+      $match: {
+        host_id: hostId,
+        session_status: { $in: ["inactive", "halt"] },
+      },
+    },
+    { $sort: { updatedAt: -1 } },
+    { $limit: 10 },
+    {
+      $lookup: {
+        from: "queues",
+        let: {
+          sessionId: "$_id",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$session_id", "$$sessionId"] },
+                  { $eq: ["$status", "played"] },
+                ],
+              },
+            },
+          },
+          {
+            $count: "count",
+          },
+        ],
+        as: "playedStats",
+      },
+    },
+    {
+      $project: {
+        id: "$_id",
+        name: "$session_name",
+        date: "$updatedAt",
+        totalSongs: {
+          $ifNull: [{ $arrayElemAt: ["$playedStats.count", 0] }, 0],
+        },
+      },
+    },
+  ]);
+
+  return res.status(200).json(
+    new APIResponse(
+      200,
+      {
+        activeSessions,
+        pastSessions,
+      },
+      "Dashboard data fetched successfully" // Fixed typo too
+    )
+  );
+});
+
 export {
   createSession,
   getMySession,
   joinSession,
   sessionStatusChange,
   deleteSession,
+  getDashboardData,
 };

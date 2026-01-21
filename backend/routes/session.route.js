@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   createSession,
   deleteSession,
+  getDashboardData,
   getMySession,
   joinSession,
   sessionStatusChange,
@@ -13,9 +14,10 @@ import { isLoggedIn } from "../middlewares/auth.middleware.js";
 const sessionRouter = Router();
 
 sessionRouter.post("/create", isLoggedIn, isHost, createSession);
-sessionRouter.get("/my", isLoggedIn,isHost, getMySession);
+sessionRouter.get("/my", isLoggedIn, isHost, getMySession);
+sessionRouter.get("/dashboard", isLoggedIn, isHost, getDashboardData);
 sessionRouter.post("/join", joinSession);
-sessionRouter.delete("/:id/", isLoggedIn,isHost, deleteSession);
-sessionRouter.patch("/:id/status", isLoggedIn,isHost, sessionStatusChange);
+sessionRouter.delete("/:id/", isLoggedIn, isHost, deleteSession);
+sessionRouter.patch("/:id/status", isLoggedIn, isHost, sessionStatusChange);
 
 export default sessionRouter;

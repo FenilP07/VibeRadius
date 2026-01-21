@@ -11,7 +11,7 @@ const voteSchema = new Schema(
 
     track_id: {
       type: Schema.Types.ObjectId,
-      ref: "QueueTrack",
+      ref: "Queue",
       required: true,
       index: true,
     },

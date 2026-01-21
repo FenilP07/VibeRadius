@@ -17,21 +17,22 @@ const sessionSchema = new Schema(
       unique: true,
       uppercase: true,
     },
-    participants: {
-      type: Number,
-
-      default: 0,
-    },
+    participants: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     session_status: {
       type: String,
       enum: ["active", "inactive", "halt"],
       default: "inactive",
     },
-    current_track_id:{
+    current_track_id: {
       type: Schema.Types.ObjectId,
       ref: "Queue",
       default: null,
-    }
+    },
   },
   {
     timestamps: true,
