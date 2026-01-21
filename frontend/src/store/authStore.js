@@ -19,7 +19,7 @@ const useAuthStore = create((set, get) => ({
     set({
       spotifyConnected: value,
     });
-    localStorage.setItem("spotifyConnectedd", value ? "true" : false);
+    localStorage.setItem("spotifyConnected", value ? "true" : false);
   },
 
   register: async (userData) => {
