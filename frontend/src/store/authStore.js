@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { authService } from "../services/authService.js";
 import useSessionStore from "./sessionStore.js";
-
-// import { io } from "socket.io-client";
+import { disconnectSocket } from "../utils/socketManager.js";
 
 const useAuthStore = create((set, get) => ({
   user: null,
@@ -10,7 +9,6 @@ const useAuthStore = create((set, get) => ({
   isLoading: false,
   error: null,
   isInitializing: false,
-  socket: null,
   spotifyConnected: localStorage.getItem("spotifyConnected") === "true",
 
   setUser: (user) => set({ user, isAuthenticated: !!user }),
@@ -67,13 +65,8 @@ const useAuthStore = create((set, get) => ({
       set({ user: null, isAuthenticated: false, error: null });
       localStorage.removeItem("accessToken");
       localStorage.removeItem("spotifyConnected");
-      const socket = get().socket;
-      if (socket) {
-        socket.disconnect();
-        set({ socket: null });
-      }
-
-      const sessionStore= useSessionStore.getState();
+      disconnectSocket("/session");
+      const sessionStore = useSessionStore.getState();
       sessionStore.reset();
     }
   },
@@ -101,40 +94,13 @@ const useAuthStore = create((set, get) => ({
         isLoading: false,
         isInitializing: false,
       });
-      return { success: false };
+      localStorage.removeItem("accessToken");
+      return false;
     }
   },
 
   updateUser: (userData) =>
     set((state) => ({ user: { ...state.user, ...userData } })),
-
-  connectToSession: (sessionCode) => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
-      console.error("No access token found for socket connection");
-      return null;
-    }
-
-    const socket = io("http://localhost:3000/session", {
-      auth: { token: accessToken },
-    });
-
-    socket.on("connect", () => {
-      console.log("Connected to session socket:", socket.id);
-      socket.emit("join-session", { sessionCode });
-    });
-
-    socket.on("user-joined", (data) => {
-      console.log("User joined session:", data);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected");
-    });
-
-    set({ socket });
-    return socket;
-  },
 }));
 
 export default useAuthStore;

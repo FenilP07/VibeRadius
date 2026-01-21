@@ -37,4 +37,41 @@ const isLoggedIn = asyncHandler(async (req, res, next) => {
   }
 });
 
+<<<<<<< HEAD
 export { isLoggedIn };
+=======
+const autoGenerateRefreshToken = asyncHandler(async (req, res, next) => {
+  const refreshToken = req.cookies?.refreshToken;
+
+  if (!refreshToken) {
+    throw new APIError(401, "Unauthorized. Please login.");
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+  } catch (error) {
+    throw new APIError(401, "Invalid or expired refresh token.");
+  }
+
+  const user = await User.findById(decoded._id);
+  if( !user || user.refreshToken !== refreshToken) {
+    throw new APIError(401, "User not found or token mismatch.");
+  }
+
+  const { refreshTokens } = await generateAccessRefreshToken(user._id);
+  
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+  
+  res
+    .status(200)
+    .cookie("refreshToken", refreshTokens, options);
+
+  next();
+});
+
+export { isLoggedIn, autoGenerateRefreshToken };
+>>>>>>> 60ed990 (intialized to sockets for both forntend and backend token validation needs work whcih will happne after merging)
