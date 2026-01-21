@@ -210,7 +210,7 @@ const Login = () => {
               Don't have an account?{' '}
               <button
                 type="button"
-                onClick={() => navigate('/register')}
+                onClick={() => navigate('/auth/register')}
                 className="text-[#E07A3D] hover:text-[#C4612A] font-medium"
               >
                 Register here
