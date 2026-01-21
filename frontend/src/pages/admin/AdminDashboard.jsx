@@ -15,31 +15,32 @@ export const AdminDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
   const spotifyConnected = useAuthStore((state) => state.spotifyConnected);
-  const setspotifyConnected = useAuthStore(
-    (state) => state.setspotifyConnected
-  );
+  const setSpotifyConnected = useAuthStore((state) => state.setSpotifyConnected);
 
   // Check if redirected from Spotify
   useEffect(() => {
     const spotifyStatus = searchParams.get("spotify");
 
     if (spotifyStatus === "connected") {
-      setspotifyConnected(true)
+      setSpotifyConnected(true);
       setShowSuccess(true);
 
-      // Remove query param from URL (clean up)
-      searchParams.delete("spotify");
-      setSearchParams(searchParams);
+      // Remove query param from URL safely
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("spotify");
+      setSearchParams(newParams);
 
       // Hide success message after 3 seconds
-      setTimeout(() => setShowSuccess(false), 3000);
+      const timeout = setTimeout(() => setShowSuccess(false), 3000);
+      return () => clearTimeout(timeout);
     }
 
     if (spotifyStatus === "error") {
       console.error("Spotify connection failed");
     }
-  }, [searchParams, setSearchParams,setspotifyConnected]);
+  }, [searchParams, setSearchParams, setSpotifyConnected]);
 
   // Handle Spotify Login
   const handleSpotifyLogin = () => {
@@ -100,17 +101,20 @@ export const AdminDashboard = () => {
 
             <h1 className="text-5xl lg:text-6xl font-bold tracking-tight text-accent-dark leading-[1.1] mt-4">
               Let your space <br />
-              <span className="text-primary bg-gradient-to-r from-primary to-accent bg-clip-text [-webkit-background-clip:text] [-webkit-text-fill-color:transparent]">
+              <span
+                style={{
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+                className="text-primary bg-gradient-to-r from-primary to-accent bg-clip-text"
+              >
                 feel alive.
               </span>
             </h1>
 
             <p className="mt-8 text-lg text-text-primary/80 max-w-xl leading-relaxed">
               Customers scan. Songs queue. Your venue transforms into an
-              <span className="text-accent font-medium">
-                {" "}
-                interactive music experience.
-              </span>
+              <span className="text-accent font-medium"> interactive music experience.</span>
             </p>
 
             <div className="mt-10 flex flex-col gap-3">
@@ -270,7 +274,6 @@ export const AdminDashboard = () => {
 };
 
 /* ==================== Sub Components ==================== */
-
 const Feature = ({ icon, text, desc }) => (
   <div className="flex items-center gap-4 p-3 rounded-xl border border-transparent">
     <span className="w-12 h-12 bg-primary-subtle rounded-xl flex items-center justify-center text-primary text-xl shrink-0 border border-primary/10">

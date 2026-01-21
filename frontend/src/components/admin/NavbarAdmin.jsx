@@ -11,7 +11,7 @@ export const NavbarAdmin = ({ title = "VibeRadius" }) => {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/login");
+    navigate("/auth/login");
   };
 
   // Get initials for the avatar if name exists
