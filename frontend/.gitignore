@@ -1,3 +1,47 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Testing
+/coverage
+*.lcov
+.nyc_output
+
+# Production builds
+/build
+/dist
+/.next
+/out
+.next/
+.nuxt/
+.output/
+.vercel
+.netlify
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+
+# Cache and temp files
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+.turbo/
+
 # Logs
 logs
 *.log
@@ -7,18 +51,65 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# IDE/Editor files
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Storybook
+storybook-static/
+.storybook-out/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# PWA
+**/public/sw.js
+**/public/workbox-*.js
+**/public/worker-*.js
+**/public/sw.js.map
+**/public/workbox-*.js.map
+**/public/worker-*.js.map
+
+# Sentry
+.sentryclirc
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local files
 *.local
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Temporary files
+*.tmp
+temp/
+tmp/

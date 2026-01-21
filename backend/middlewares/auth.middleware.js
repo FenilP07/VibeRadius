@@ -49,7 +49,7 @@ const autoGenerateRefreshToken = asyncHandler(async (req, res, next) => {
   }
 
   const { refreshTokens } = await generateAccessRefreshToken(user._id);
-
+  
   const options = {
     httpOnly: true,
     secure: true,

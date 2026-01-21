@@ -1,3 +1,5 @@
+import logger from "../utils/logger.js";
+
 const socketAuth = (socket, next) => {
   try {
     const token = socket.handshake.auth?.token;
@@ -22,7 +24,7 @@ const socketAuth = (socket, next) => {
 
     next();
   } catch (error) {
-    logger.warn("Socket authentication failed:", err.message);
+    logger.warn("Socket authentication failed:", error.message);
     next(new Error("Invalid or expired token"));
   }
 };

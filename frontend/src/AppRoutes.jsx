@@ -5,7 +5,7 @@ import SpotifySearch from "./components/SpotifySearch";
 import Login from "./pages/auth/Login.jsx";
 import Register from "./pages/auth/Register.jsx";
 import HomePage from "./pages/homePage.jsx";
-import SessionPage from "./pages/SessionPage.jsx"
+import SessionPage from "./pages/SessionPage.jsx";
 import { HostProfile } from "./pages/admin/HostProfile.jsx";
 
 export default function AppRoutes() {
