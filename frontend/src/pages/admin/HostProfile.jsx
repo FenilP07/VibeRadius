@@ -9,9 +9,9 @@ export const HostProfile = () => {
   const spotifyConnected = useAuthStore((s) => s.spotifyConnected);
   const logout = useAuthStore((s) => s.logout);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/auth/login", { replace: true });
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login", { replace: true });
   };
 
   return (
