@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import logger from "../utils/logger.js";
 
 const userSchema = new Schema(
   {
@@ -26,6 +27,11 @@ const userSchema = new Schema(
       required: true,
       minLength: 8,
     },
+    role: {
+      type: String,
+      enum: ["user", "admin", "host"],
+      default: "user",
+    },
     refreshToken: {
       type: String,
       default: null,
@@ -39,10 +45,10 @@ const userSchema = new Schema(
 // pre hook to hash password
 userSchema.pre("save", async function (next) {
   try {
-    if (!this.isModified("password")) return this.password;
+    if (!this.isModified("password")) return next;
     const saltRound = 10; // number of character in the password
     this.password = await bcrypt.hash(this.password, saltRound);
-    next();
+    next;
   } catch (error) {
     next(error);
   }
@@ -51,34 +57,6 @@ userSchema.pre("save", async function (next) {
 // password check
 userSchema.methods.comparePassword = async function (password) {
   return bcrypt.compare(password, this.password);
-};
-
-userSchema.methods.generateAccessToken = function () {
-  return jwt.sign(
-    {
-      sub: this._id,
-      email: this.email,
-      username: this.username,
-    },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
-    }
-  );
-};
-
-userSchema.methods.generateRefreshToken = function () {
-  return jwt.sign(
-    {
-      sub: this._id,
-      email: this.email,
-      username: this.username,
-    },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
-    }
-  );
 };
 
 const User = mongoose.model("User", userSchema);
