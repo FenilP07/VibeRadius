@@ -186,7 +186,7 @@ const getSocketToken = asyncHandler(async (req, res) => {
     .json(
       new APIResponse(
         200,
-        { socketTokem: accessToken },
+        { socketToken: accessToken },
         "Socket Token retrieved"
       )
     );

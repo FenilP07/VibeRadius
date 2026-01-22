@@ -7,31 +7,51 @@ const useAuthStore = create((set, get) => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
-  isInitializing: true, // Start as true so the loader shows immediately
+  isInitializing: true,
   error: null,
   spotifyConnected: localStorage.getItem("spotifyConnected") === "true",
   socketToken: null,
-  isFetchingSocketToken: false, // Prevents race conditions
+  activeTokenPromise: null, // Tracks in-flight token requests to prevent loops
 
+  /**
+   * Fetches the specialized token for Socket.io authentication.
+   * Uses promise-tracking to prevent race conditions during page loads.
+   */
   fetchSocketToken: async () => {
-    // If we already have a token or are currently fetching one, skip
-    if (get().isFetchingSocketToken) return;
+    const state = get();
 
-    set({ isFetchingSocketToken: true });
-    try {
-      const response = await authService.socketToken();
-      const { socketToken } = response.data.data;
-      set({ socketToken, isFetchingSocketToken: false });
-      return socketToken;
-    } catch (error) {
-      console.error("Error fetching socket token:", error);
-      set({ socketToken: null, isFetchingSocketToken: false });
-      return null;
-    }
+    // If we already have a token, return it immediately
+    if (state.socketToken) return state.socketToken;
+
+    // If a request is already in progress, return that specific promise
+    if (state.activeTokenPromise) return state.activeTokenPromise;
+
+    // Create a new request promise
+    const tokenPromise = (async () => {
+      try {
+        const response = await authService.socketToken();
+        const socketToken = response.data.data.socketToken;
+
+        if (!socketToken) {
+          throw new Error("Token missing in API response");
+        }
+
+        set({ socketToken, activeTokenPromise: null });
+        return socketToken;
+      } catch (error) {
+        console.error("Error fetching socket token:", error);
+        set({ socketToken: null, activeTokenPromise: null });
+        return null;
+      }
+    })();
+
+    // Store the promise so other callers (like the Socket Manager) can await it
+    set({ activeTokenPromise: tokenPromise });
+    return tokenPromise;
   },
 
   setUser: (user) => set({ user, isAuthenticated: !!user }),
-  
+
   setSpotifyConnected: (value) => {
     set({ spotifyConnected: value });
     localStorage.setItem("spotifyConnected", value ? "true" : "false");
@@ -42,9 +62,9 @@ const useAuthStore = create((set, get) => ({
     try {
       const response = await authService.register(userData);
       const { user } = response.data.data;
-      
+
       set({ user, isAuthenticated: true, isLoading: false });
-      await get().fetchSocketToken();
+      await get().fetchSocketToken(); // Auto-fetch token after registration
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "Registration failed";
@@ -60,7 +80,7 @@ const useAuthStore = create((set, get) => ({
       const { user } = response.data.data;
 
       set({ user, isAuthenticated: true, isLoading: false });
-      await get().fetchSocketToken();
+      await get().fetchSocketToken(); // Auto-fetch token after login
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "Login failed";
@@ -75,14 +95,15 @@ const useAuthStore = create((set, get) => ({
     } catch (err) {
       console.warn("Server logout failed. Clearing client state anyway.");
     } finally {
-      // Clear EVERYTHING
+      // Clear ALL authentication and socket state
       set({
         user: null,
         isAuthenticated: false,
         error: null,
         isLoading: false,
         socketToken: null,
-        isInitializing: false
+        isInitializing: false,
+        activeTokenPromise: null,
       });
 
       localStorage.removeItem("spotifyConnected");
@@ -105,14 +126,14 @@ const useAuthStore = create((set, get) => ({
         isInitializing: false,
       });
 
-      await get().fetchSocketToken();
+      await get().fetchSocketToken(); // Ensure socket token is ready after verification
       return { success: true, user };
     } catch (err) {
       set({
         user: null,
         isAuthenticated: false,
         isLoading: false,
-        isInitializing: false, 
+        isInitializing: false,
       });
       return { success: false };
     }

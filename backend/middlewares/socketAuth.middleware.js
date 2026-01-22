@@ -10,7 +10,7 @@ const socketAuth = (socket, next) => {
     }
 
     // Verify JWT
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Attach user data to socket for use in handlers
     socket.user = {
