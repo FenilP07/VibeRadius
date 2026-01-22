@@ -11,10 +11,11 @@ const apiClient = axios.create({
 let isRefreshing = false;
 let failedQueue = [];
 
-const processQueue = (error, success = null) => {
+// Helper to clear the queue
+const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {
     if (error) prom.reject(error);
-    else prom.resolve(success);
+    else prom.resolve(token);
   });
   failedQueue = [];
 };
@@ -23,6 +24,8 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // 1. Only intercept 401s that aren't on the "exclude" list
     if (error.response?.status !== 401) return Promise.reject(error);
 
     const skipUrls = [
@@ -36,28 +39,37 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // 2. If a refresh is already happening, queue this request
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
       })
-        .then(() => apiClient(originalRequest))
+        .then(() => apiClient(originalRequest)) // Retry with the same instance
         .catch((err) => Promise.reject(err));
     }
 
+    // 3. Mark request as retry to avoid infinite loops
     if (!originalRequest._retry) {
       originalRequest._retry = true;
       isRefreshing = true;
 
       try {
+        console.log("[API] Attempting silent token refresh...");
         await apiClient.post("/api/auth/refresh-token");
-        processQueue(null, true);
-        return apiClient(originalRequest);
+        
+        processQueue(null); // Resolve everything in the queue
+        return apiClient(originalRequest); // Retry the original request
       } catch (refreshError) {
-        processQueue(refreshError, null);
-        await useAuthStore.getState().logout();
+        processQueue(refreshError, null); // Reject everyone in the queue
+        
+        // Handle global logout state
+        const authStore = useAuthStore.getState();
+        await authStore.logout();
 
-        if (!window.location.pathname.includes("/auth/login")) {
-          window.location.replace("/auth/login");
+        // Optional: Only redirect if you aren't already on an auth page
+        if (!window.location.pathname.startsWith("/auth/")) {
+            // Using replace prevents the user from clicking "back" into a dead session
+            window.location.replace("/auth/login");
         }
 
         return Promise.reject(refreshError);

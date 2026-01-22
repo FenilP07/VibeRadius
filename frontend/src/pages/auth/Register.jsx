@@ -223,7 +223,7 @@ const Register = () => {
           </form>
 
           <div className="mt-8 text-center pt-6 border-t border-[#5C4033]/5">
-            <button onClick={() => navigate('/login')} className="text-sm text-[#5C4033]/60">
+            <button onClick={() => navigate('/auth/login')} className="text-sm text-[#5C4033]/60">
               Already have an account? <span className="text-[#E07A3D] font-bold hover:underline">Log in</span>
             </button>
           </div>
