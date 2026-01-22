@@ -7,25 +7,54 @@ import Register from "./pages/auth/Register.jsx";
 import HomePage from "./pages/homePage.jsx";
 import SessionPage from "./pages/SessionPage.jsx";
 import { HostProfile } from "./pages/admin/HostProfile.jsx";
+import useAuthStore from "./store/authStore.js";
+
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, isInitializing } = useAuthStore();
+
+  if (isInitializing) return null;
+  return isAuthenticated ? children : <Navigate to="/auth/login" />;
+};
 
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<HomePage />}></Route>
-      <Route path="/hostprofile" element={<HostProfile />}></Route>
-      <Route path="/search" element={<SpotifySearch />}></Route>
-      <Route path="/session" element={<SessionPage />}></Route>
-      {/* For Style Guide */}
+      {/* <Route
+        path="/session/:sessionCode"
+        element={
+          <ProtectedRoute>
+            <SessionPage />
+          </ProtectedRoute>
+        }
+      /> */}
+
+      {/* Public Routes */}
+      <Route path="/" element={<HomePage />} />
+      <Route path="/session" element={<SessionPage />} />
+      <Route path="/auth/login" element={<Login />} />
+      <Route path="/auth/register" element={<Register />} />
       <Route path="/styleguide" element={<StyleGuide />} />
 
-      {/* For Admin Dashboard */}
-      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      {/* Protected Admin/Host Routes */}
+      <Route
+        path="/admin/dashboard"
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
 
-            {/* For Authentication */}
-            <Route path='/auth/login' element={<Login/>}></Route>
-            <Route path='/auth/register' element={<Register/>}></Route>
+      <Route
+        path="/hostprofile"
+        element={
+          <ProtectedRoute>
+            <HostProfile />
+          </ProtectedRoute>
+        }
+      />
 
-        </Routes>
-    )
-
+      <Route path="/search" element={<SpotifySearch />} />
+    </Routes>
+  );
 }

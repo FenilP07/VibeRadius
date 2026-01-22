@@ -2,47 +2,49 @@ import { useEffect, useRef } from "react";
 import useAuthStore from "../store/authStore";
 import { getSocket } from "../utils/socketManager";
 
-export const useSessionSocket = (eventHandlers = {}) => {
-  const { isAuthenticated } = useAuthStore();
-
-  // Use a ref to store handlers so we can access the latest ones
-  // without re-triggering the useEffect
+export const useSessionSocket = (sessionCode, eventHandlers = {}) => {
+  const { isAuthenticated, socketToken } = useAuthStore();
   const handlersRef = useRef(eventHandlers);
 
-  // Update the ref whenever handlers change
+  // Keep handlers updated without triggering re-renders
   useEffect(() => {
     handlersRef.current = eventHandlers;
   }, [eventHandlers]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    // Only attempt connection if authenticated and we actually have a token string
+    if (!isAuthenticated || !socketToken || !sessionCode) return;
 
     let socketInstance = null;
 
     const initSocket = async () => {
-      // 1. Get the socket (manager handles tokens internally)
       socketInstance = await getSocket("/session");
 
       if (!socketInstance) return;
 
-      // 2. Attach handlers using the ref
+      // Register handlers
       Object.entries(handlersRef.current).forEach(([event, handler]) => {
         socketInstance.on(event, handler);
       });
 
-      console.log("📡 [Socket] Listeners attached to /session");
+      // Join the specific session room
+      socketInstance.emit("join_session", sessionCode, (res) => {
+        if (!res.success) console.error("❌ Join Error:", res.message);
+      });
     };
 
     initSocket();
 
-    // Cleanup function
     return () => {
       if (socketInstance) {
+        // Emit leave before removing listeners
+        socketInstance.emit("leave_session", sessionCode);
+        
         Object.entries(handlersRef.current).forEach(([event, handler]) => {
           socketInstance.off(event, handler);
         });
-        console.log("🛑 [Socket] Listeners removed from /session");
+        console.log("🛑 [Socket] Cleanup complete");
       }
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, socketToken, sessionCode]); // Re-run when token is finally fetched
 };
