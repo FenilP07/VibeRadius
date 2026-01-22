@@ -10,6 +10,20 @@ const useAuthStore = create((set, get) => ({
   error: null,
   isInitializing: false,
   spotifyConnected: localStorage.getItem("spotifyConnected") === "true",
+  socketToken: null,
+
+  fetchSocketToken: async () => {
+    try {
+      const response = await authService.socketToken();
+      const { socketToken } = response.data.data;
+      set({ socketToken });
+      return socketToken;
+    } catch (error) {
+      console.erro("Error fetching socket token");
+      set({ socketToken: null });
+      return null;
+    }
+  },
 
   setUser: (user) => set({ user, isAuthenticated: !!user }),
   setLoading: (isLoading) => set({ isLoading }),
@@ -31,6 +45,7 @@ const useAuthStore = create((set, get) => ({
       localStorage.setItem("accessToken", accessTokens);
 
       set({ user, isAuthenticated: true, isLoading: false, error: null });
+      await get().fetchSocketToken();
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "Registration failed";
@@ -48,6 +63,7 @@ const useAuthStore = create((set, get) => ({
       localStorage.setItem("accessToken", accessTokens);
 
       set({ user, isAuthenticated: true, isLoading: false, error: null });
+      await get().fetchSocketToken();
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "Login failed";
@@ -67,6 +83,7 @@ const useAuthStore = create((set, get) => ({
         isAuthenticated: false,
         error: null,
         isLoading: false,
+        socketToken: null,
       });
       localStorage.removeItem("accessToken");
       localStorage.removeItem("spotifyConnected");
@@ -89,6 +106,8 @@ const useAuthStore = create((set, get) => ({
         isLoading: false,
         isInitializing: false,
       });
+
+      await get().fetchSocketToken();
       return { success: true, user };
     } catch (err) {
       set({

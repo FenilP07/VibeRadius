@@ -20,12 +20,12 @@ const BASE_COOKIE_OPTIONS = {
 
 const ACCESS_TOKEN_COOKIE_OPTIONS = {
   ...BASE_COOKIE_OPTIONS,
-  maxAge: 15 * 60 * 1000,  // 15 MINUTES (you changed this from 15 * 1000)
+  maxAge: 15 * 60 * 1000, // 15 MINUTES (you changed this from 15 * 1000)
 };
 
 const REFRESH_TOKEN_COOKIE_OPTIONS = {
   ...BASE_COOKIE_OPTIONS,
-  maxAge: 7 * 24 * 60 * 60 * 1000,  // 7 DAYS
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 DAYS
 };
 
 // Register User
@@ -172,6 +172,26 @@ const deleteUser = asyncHandler(async (req, res) => {
     .json(new APIResponse(200, null, "User deleted"));
 });
 
+const getSocketToken = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  if (!userId) {
+    throw new APIError(401, "User not found");
+  }
+
+  const accessToken = req.cookies.accessToken;
+  if (!accessToken) throw new APIError(401, "No access token found");
+
+  res
+    .status(200)
+    .json(
+      new APIResponse(
+        200,
+        { socketTokem: accessToken },
+        "Socket Token retrieved"
+      )
+    );
+});
+
 export {
   registerUser,
   loginUser,
@@ -181,4 +201,5 @@ export {
   getUserById,
   getUserByEmail,
   deleteUser,
+  getSocketToken,
 };

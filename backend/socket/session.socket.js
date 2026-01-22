@@ -15,7 +15,6 @@ const registerSessionNamespace = (io) => {
       userId: socket.user?._id,
     });
 
-   
     socket.on("join_session", async (sessionCode, callback) => {
       try {
         const session = await Session.findOne({

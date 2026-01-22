@@ -22,6 +22,10 @@ const authService = {
   refreshToken: async () => {
     return await apiClient.post(`${authApiPrefix}/refresh-token`);
   },
+
+  socketToken: async () => {
+    return await apiClient.get(`${authApiPrefix}/socket-token`);
+  },
 };
 
 export { authService };
