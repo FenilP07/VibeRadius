@@ -7,67 +7,64 @@ const useAuthStore = create((set, get) => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
+  isInitializing: true, // Start as true so the loader shows immediately
   error: null,
-  isInitializing: false,
   spotifyConnected: localStorage.getItem("spotifyConnected") === "true",
   socketToken: null,
+  isFetchingSocketToken: false, // Prevents race conditions
 
   fetchSocketToken: async () => {
+    // If we already have a token or are currently fetching one, skip
+    if (get().isFetchingSocketToken) return;
+
+    set({ isFetchingSocketToken: true });
     try {
       const response = await authService.socketToken();
       const { socketToken } = response.data.data;
-      set({ socketToken });
+      set({ socketToken, isFetchingSocketToken: false });
       return socketToken;
     } catch (error) {
-      console.erro("Error fetching socket token");
-      set({ socketToken: null });
+      console.error("Error fetching socket token:", error);
+      set({ socketToken: null, isFetchingSocketToken: false });
       return null;
     }
   },
 
   setUser: (user) => set({ user, isAuthenticated: !!user }),
-  setLoading: (isLoading) => set({ isLoading }),
-  setError: (error) => set({ error }),
-  clearError: () => set({ error: null }),
+  
   setSpotifyConnected: (value) => {
-    set({
-      spotifyConnected: value,
-    });
-    localStorage.setItem("spotifyConnected", value ? "true" : false);
+    set({ spotifyConnected: value });
+    localStorage.setItem("spotifyConnected", value ? "true" : "false");
   },
 
   register: async (userData) => {
+    set({ isLoading: true, error: null });
     try {
-      set({ isLoading: true, error: null });
       const response = await authService.register(userData);
-      const { user, accessTokens } = response.data.data;
-
-      localStorage.setItem("accessToken", accessTokens);
-
-      set({ user, isAuthenticated: true, isLoading: false, error: null });
+      const { user } = response.data.data;
+      
+      set({ user, isAuthenticated: true, isLoading: false });
       await get().fetchSocketToken();
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "Registration failed";
-      set({ error: message, isLoading: false, isAuthenticated: false });
+      set({ error: message, isLoading: false });
       return { success: false, error: message };
     }
   },
 
   login: async (credentials) => {
+    set({ isLoading: true, error: null });
     try {
-      set({ isLoading: true, error: null });
       const response = await authService.login(credentials);
-      const { user, accessTokens } = response.data.data;
+      const { user } = response.data.data;
 
-      localStorage.setItem("accessToken", accessTokens);
-
-      set({ user, isAuthenticated: true, isLoading: false, error: null });
+      set({ user, isAuthenticated: true, isLoading: false });
       await get().fetchSocketToken();
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "Login failed";
-      set({ error: message, isLoading: false, isAuthenticated: false });
+      set({ error: message, isLoading: false });
       return { success: false, error: message };
     }
   },
@@ -78,18 +75,19 @@ const useAuthStore = create((set, get) => ({
     } catch (err) {
       console.warn("Server logout failed. Clearing client state anyway.");
     } finally {
+      // Clear EVERYTHING
       set({
         user: null,
         isAuthenticated: false,
         error: null,
         isLoading: false,
         socketToken: null,
+        isInitializing: false
       });
-      localStorage.removeItem("accessToken");
+
       localStorage.removeItem("spotifyConnected");
       disconnectSocket("/session");
-      const sessionStore = useSessionStore.getState();
-      sessionStore.reset();
+      useSessionStore.getState().reset();
     }
   },
 
@@ -114,15 +112,16 @@ const useAuthStore = create((set, get) => ({
         user: null,
         isAuthenticated: false,
         isLoading: false,
-        isInitializing: false,
+        isInitializing: false, 
       });
-      localStorage.removeItem("accessToken");
       return { success: false };
     }
   },
 
   updateUser: (userData) =>
     set((state) => ({ user: { ...state.user, ...userData } })),
+
+  clearError: () => set({ error: null }),
 }));
 
 export default useAuthStore;

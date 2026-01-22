@@ -1,31 +1,48 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import useAuthStore from "../store/authStore";
 import { getSocket } from "../utils/socketManager";
 
 export const useSessionSocket = (eventHandlers = {}) => {
   const { isAuthenticated } = useAuthStore();
 
+  // Use a ref to store handlers so we can access the latest ones
+  // without re-triggering the useEffect
+  const handlersRef = useRef(eventHandlers);
+
+  // Update the ref whenever handlers change
+  useEffect(() => {
+    handlersRef.current = eventHandlers;
+  }, [eventHandlers]);
+
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
-      console.warn("⚠️ No access token found for socket connection");
-      return;
-    }
+    let socketInstance = null;
 
-    const socket = getSocket("/session", accessToken);
+    const initSocket = async () => {
+      // 1. Get the socket (manager handles tokens internally)
+      socketInstance = await getSocket("/session");
 
-    // Register custom event handlers
-    Object.entries(eventHandlers).forEach(([event, handler]) => {
-      socket.on(event, handler);
-    });
+      if (!socketInstance) return;
 
-    // Cleanup
-    return () => {
-      Object.entries(eventHandlers).forEach(([event, handler]) => {
-        socket.off(event, handler);
+      // 2. Attach handlers using the ref
+      Object.entries(handlersRef.current).forEach(([event, handler]) => {
+        socketInstance.on(event, handler);
       });
+
+      console.log("📡 [Socket] Listeners attached to /session");
     };
-  }, [isAuthenticated, eventHandlers]);
+
+    initSocket();
+
+    // Cleanup function
+    return () => {
+      if (socketInstance) {
+        Object.entries(handlersRef.current).forEach(([event, handler]) => {
+          socketInstance.off(event, handler);
+        });
+        console.log("🛑 [Socket] Listeners removed from /session");
+      }
+    };
+  }, [isAuthenticated]);
 };

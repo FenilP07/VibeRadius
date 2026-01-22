@@ -12,35 +12,43 @@ function Root() {
   const verifyToken = useAuthStore((state) => state.verifyToken);
   const logout = useAuthStore((state) => state.logout);
 
-  // Check auth on initial load
+  // 1. Initial verification on mount
   useEffect(() => {
     verifyToken();
   }, [verifyToken]);
 
-  // Silent refresh timer - runs every 14 minutes
+  // 2. Optimized Silent Refresh Timer
   useEffect(() => {
+    // Only start the timer if the user is actually logged in
     if (!isAuthenticated) return;
 
-    const interval = setInterval(async () => {
-      console.log('[Auth] Refreshing token...');
+    const REFRESH_INTERVAL = 14 * 60 * 1000; // 14 minutes
+
+    const performRefresh = async () => {
+      console.log('[Auth] Periodic token refresh initiated...');
       try {
         await authService.refreshToken();
         console.log('[Auth] Token refreshed ✓');
       } catch (error) {
-        console.error('[Auth] Refresh failed, logging out');
+        console.error('[Auth] Periodic refresh failed, session expired.');
         await logout();
       }
-    }, 14 * 60 * 1000); // 14 minutes
+    };
 
-    return () => clearInterval(interval);
+    const intervalId = setInterval(performRefresh, REFRESH_INTERVAL);
+
+    // Cleanup function: clears the timer if the component unmounts 
+    // or if the user logs out (isAuthenticated changes)
+    return () => clearInterval(intervalId);
   }, [isAuthenticated, logout]);
 
+  // 3. Early return for the "Gating" mechanism
   if (isInitializing) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600">Checking your session...</p>
         </div>
       </div>
     );
@@ -53,8 +61,12 @@ function Root() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <Root />
-  </React.StrictMode>
-);
+// Render logic
+const rootElement = document.getElementById("root");
+if (rootElement) {
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <Root />
+    </React.StrictMode>
+  );
+}
