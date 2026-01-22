@@ -4,24 +4,22 @@ import socketAuth from "../middlewares/socketAuth.middleware.js"; // Ensure this
 
 const registerSessionNamespace = (io) => {
   const sessionNamespace = io.of("/session");
-
-  // 1. MUST apply middleware before the .on("connection") block
   sessionNamespace.use(socketAuth);
 
   sessionNamespace.on("connection", (socket) => {
-    // 🛑 THE CRASH FIX: Guard against undefined user
     if (!socket?.user?._id) {
-      logger.error(`Socket ${socket.id} connected without a valid user object. Disconnecting.`);
-      return socket.disconnect(true); 
+      logger.error(
+        `Socket ${socket.id} connected without a valid user object. Disconnecting.`
+      );
+      return socket.disconnect(true);
     }
-
     const userId = socket.user._id;
     logger.info(`✅ User ${userId} authenticated and connected to /session`);
-
-    // Helper function (logic remains the same, but safer)
     const handleLeave = async (roomId, sessionCode) => {
       try {
-        const query = sessionCode ? { session_code: sessionCode } : { _id: roomId };
+        const query = sessionCode
+          ? { session_code: sessionCode }
+          : { _id: roomId };
         const session = await Session.findOneAndUpdate(
           query,
           { $pull: { participants: userId } },
@@ -71,6 +69,7 @@ const registerSessionNamespace = (io) => {
       const roomId = await handleLeave(null, sessionCode);
       if (roomId) {
         socket.leave(roomId);
+        socket.currentSessionId = null;
         if (callback) callback({ success: true });
       }
     });

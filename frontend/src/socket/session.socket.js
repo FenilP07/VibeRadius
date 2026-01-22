@@ -16,14 +16,17 @@ export const useSessionSocket = (sessionCode, eventHandlers = {}) => {
     if (!isAuthenticated || !socketToken || !sessionCode) return;
 
     let socketInstance = null;
+    let cancelled = false;
+    let registeredHandlers = [];
 
     const initSocket = async () => {
       socketInstance = await getSocket("/session");
 
-      if (!socketInstance) return;
+      if (!socketInstance || cancelled) return;
 
       // Register handlers
-      Object.entries(handlersRef.current).forEach(([event, handler]) => {
+      registeredHandlers = Object.entries(handlersRef.current);
+      registeredHandlers.forEach(([event, handler]) => {
         socketInstance.on(event, handler);
       });
 
@@ -36,15 +39,16 @@ export const useSessionSocket = (sessionCode, eventHandlers = {}) => {
     initSocket();
 
     return () => {
+      cancelled = true;
       if (socketInstance) {
         // Emit leave before removing listeners
         socketInstance.emit("leave_session", sessionCode);
-        
-        Object.entries(handlersRef.current).forEach(([event, handler]) => {
+
+        registeredHandlers.forEach(([event, handler]) => {
           socketInstance.off(event, handler);
         });
         console.log("🛑 [Socket] Cleanup complete");
       }
     };
-  }, [isAuthenticated, socketToken, sessionCode]); // Re-run when token is finally fetched
+  }, [isAuthenticated, socketToken, sessionCode, eventHandlers]); // Re-run when token is finally fetched
 };

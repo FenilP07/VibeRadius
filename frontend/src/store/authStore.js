@@ -63,8 +63,13 @@ const useAuthStore = create((set, get) => ({
       const response = await authService.register(userData);
       const { user } = response.data.data;
 
-      set({ user, isAuthenticated: true, isLoading: false });
-      await get().fetchSocketToken(); // Auto-fetch token after registration
+      +set({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        isInitializing: false,
+      });
+      await get().fetchSocketToken();
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "Registration failed";
@@ -79,7 +84,12 @@ const useAuthStore = create((set, get) => ({
       const response = await authService.login(credentials);
       const { user } = response.data.data;
 
-      set({ user, isAuthenticated: true, isLoading: false });
+      +set({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        isInitializing: false,
+      });
       await get().fetchSocketToken(); // Auto-fetch token after login
       return { success: true };
     } catch (error) {
@@ -134,6 +144,8 @@ const useAuthStore = create((set, get) => ({
         isAuthenticated: false,
         isLoading: false,
         isInitializing: false,
+        socketToken: null,
+        activeTokenPromise: null,
       });
       return { success: false };
     }

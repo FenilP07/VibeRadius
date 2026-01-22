@@ -36,14 +36,14 @@ const useSessionStore = create((set, get) => ({
 
   removeActiveSession: (sessionId) =>
     set((state) => ({
-      activeSessions: state.activeSessions.filter(s => s._id !== sessionId)
+      activeSessions: state.activeSessions.filter(s => s.id !== sessionId)
     })),
 
   moveActiveToPast: (sessionId) => {
-    const sessionToMove = get().activeSessions.find(s => s._id === sessionId);
+    const sessionToMove = get().activeSessions.find(s => s.id === sessionId);
     if (sessionToMove) {
       set((state) => ({
-        activeSessions: state.activeSessions.filter(s => s._id !== sessionId),
+        activeSessions: state.activeSessions.filter(s => s.id !== sessionId),
         pastSessions: [sessionToMove, ...state.pastSessions]
       }));
     }

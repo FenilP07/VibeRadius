@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import StyleGuide from "../StyleGuide";
 import { AdminDashboard } from "./pages/admin/AdminDashboard.jsx";
 import SpotifySearch from "./components/SpotifySearch";
