@@ -85,7 +85,7 @@ export const handleLeaveSession = async (
 
 export const handleDisconnect = async (sessionNamespace, userId, sessionId) => {
   try {
-    const session = sessionService.removeUserFromSession(
+    const session = await sessionService.removeUserFromSession(
       { _id: sessionId },
       userId
     );

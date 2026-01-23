@@ -4,7 +4,7 @@ import logger from "../../utils/logger.js";
 class sessionService {
   async addUserToSession(sessionCode, userId) {
     try {
-      const session = await Session.findByIdAndUpdate(
+      const session = await Session.findOneAndUpdate(
         {
           session_code: sessionCode,
         },
@@ -24,7 +24,7 @@ class sessionService {
 
   async removeUserFromSession(query, userId) {
     try {
-      const session = Session.findOneAndDelete(
+      const session = await Session.findOneAndDelete(
         query,
         {
           $pull: {
