@@ -118,9 +118,9 @@ const navigate = useNavigate();
                       </div>
                       <button className="bg-[#5C4033] hover:bg-[#3d2b22] text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ml-auto md:ml-0 shadow-lg shadow-[#5C4033]/10"
                       onClick={()=>{
-                        navigate("/session")
+                        navigate(`/session/${session.code}`)
                       }}>
-                        Open Dashboard <FaChevronRight size={12} />
+                        Tune into Vibe <FaChevronRight size={12} />
                       </button>
                     </div>
                   </div>

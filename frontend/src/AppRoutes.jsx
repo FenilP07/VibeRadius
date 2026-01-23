@@ -28,13 +28,13 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       /> */}
-
       {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/session" element={<SessionPage />} />
       <Route path="/auth/login" element={<Login />} />
       <Route path="/auth/register" element={<Register />} />
       <Route path="/styleguide" element={<StyleGuide />} />
+      <Route path="/session/:sessionCode" element={<SessionPage />} />
 
       {/* Protected Admin/Host Routes */}
       <Route
