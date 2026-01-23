@@ -1,39 +1,68 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import useAuthStore from "../store/authStore";
 import { getSocket } from "../utils/socketManager";
 
-export const useSessionSocket = (sessionCode, eventHandlers = {}) => {
+export const useSessionSocket = (
+  sessionCode,
+  eventHandlers = {},
+  { guest = false } = {}
+) => {
   const { isAuthenticated, socketToken } = useAuthStore();
   const handlersRef = useRef(eventHandlers);
+  const [isConnected, setIsConnected] = useState(false);
+  const [joinError, setJoinError] = useState(null);
 
-  // Keep handlers updated without triggering re-renders
   useEffect(() => {
     handlersRef.current = eventHandlers;
   }, [eventHandlers]);
 
   useEffect(() => {
-    // Only attempt connection if authenticated and we actually have a token string
-    if (!isAuthenticated || !socketToken || !sessionCode) return;
+    if (!guest && (!isAuthenticated || !socketToken)) {
+      console.log("⏸️ [Socket] Waiting for authentication");
+      return;
+    }
+
+    if (!sessionCode) {
+      console.log("⏸️ [Socket] No session code provided");
+      return;
+    }
 
     let socketInstance = null;
     let cancelled = false;
-    let registeredHandlers = [];
+    const registeredHandlers = [];
 
     const initSocket = async () => {
-      socketInstance = await getSocket("/session");
+      try {
+        socketInstance = await getSocket("/session", { guest });
 
-      if (!socketInstance || cancelled) return;
+        if (!socketInstance || cancelled) return;
 
-      // Register handlers
-      registeredHandlers = Object.entries(handlersRef.current);
-      registeredHandlers.forEach(([event, handler]) => {
-        socketInstance.on(event, handler);
-      });
+        const onConnect = () => setIsConnected(true);
+        const onDisconnect = () => setIsConnected(false);
 
-      // Join the specific session room
-      socketInstance.emit("join_session", sessionCode, (res) => {
-        if (!res.success) console.error("❌ Join Error:", res.message);
-      });
+        socketInstance.on("connect", onConnect);
+        socketInstance.on("disconnect", onDisconnect);
+        registeredHandlers.push(["connect", onConnect]);
+        registeredHandlers.push(["disconnect", onDisconnect]);
+
+        Object.entries(handlersRef.current).forEach(([event, handler]) => {
+          socketInstance.on(event, handler);
+          registeredHandlers.push([event, handler]);
+        });
+
+        socketInstance.emit("join_session", sessionCode, (res) => {
+          if (res?.success) {
+            console.log(`✅ [Session] Joined: ${sessionCode}`);
+            setJoinError(null);
+          } else {
+            console.error(`❌ [Session] Join failed:`, res?.message);
+            setJoinError(res?.message || "Failed to join session");
+          }
+        });
+      } catch (error) {
+        console.error("❌ [Socket] Init error:", error);
+        setJoinError(error.message);
+      }
     };
 
     initSocket();
@@ -41,14 +70,22 @@ export const useSessionSocket = (sessionCode, eventHandlers = {}) => {
     return () => {
       cancelled = true;
       if (socketInstance) {
-        // Emit leave before removing listeners
-        socketInstance.emit("leave_session", sessionCode);
+        console.log(`🧹 [Session] Cleaning up: ${sessionCode}`);
+
+        socketInstance.emit("leave_session", sessionCode, (res) => {
+          if (res?.success) {
+            console.log(`👋 [Session] Left: ${sessionCode}`);
+          }
+        });
 
         registeredHandlers.forEach(([event, handler]) => {
           socketInstance.off(event, handler);
         });
-        console.log("🛑 [Socket] Cleanup complete");
+
+        setIsConnected(false);
       }
     };
-  }, [isAuthenticated, socketToken, sessionCode, eventHandlers]); // Re-run when token is finally fetched
+  }, [isAuthenticated, socketToken, sessionCode, guest]);
+
+  return { isConnected, joinError };
 };

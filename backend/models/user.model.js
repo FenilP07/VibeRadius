@@ -24,12 +24,14 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: function () {
+        return this.role !== "guest";
+      },
       minLength: 8,
     },
     role: {
       type: String,
-      enum: ["user", "admin", "host"],
+      enum: ["user", "admin", "host", "guest"],
       default: "user",
     },
     refreshToken: {

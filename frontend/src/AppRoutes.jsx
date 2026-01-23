@@ -13,21 +13,13 @@ import useAuthStore from "./store/authStore.js";
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isInitializing } = useAuthStore();
 
-  if (isInitializing) return null;
   return isAuthenticated ? children : <Navigate to="/auth/login" />;
 };
 
 export default function AppRoutes() {
   return (
+    
     <Routes>
-      {/* <Route
-        path="/session/:sessionCode"
-        element={
-          <ProtectedRoute>
-            <SessionPage />
-          </ProtectedRoute>
-        }
-      /> */}
       {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/session" element={<SessionPage />} />
