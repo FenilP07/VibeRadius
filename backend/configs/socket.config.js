@@ -1,8 +1,7 @@
-// sockets/index.js
-import registerSessionNamespace from "../socket/session.socket.js";
+import {registerSessionNamespace} from "../socket/namespaces/session.namespace.js";
 
 const registerSockets = (io) => {
-    console.log("registerSockets received io:", !!io);
+  console.log("registerSockets received io:", !!io);
   registerSessionNamespace(io);
 };
 

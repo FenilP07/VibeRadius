@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { sessionService } from "../services/sessionService";
 
-const useSessionStore = create((set, get) => ({
+const useSessionStore = create((set) => ({
   activeSessions: [],
   pastSessions: [],
   isLoading: false,
@@ -11,7 +11,6 @@ const useSessionStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await sessionService.getDashboardData();
-      // Using optional chaining and providing fallbacks to prevent crashes
       const dashboard = response?.data?.data;
 
       set({
@@ -27,27 +26,33 @@ const useSessionStore = create((set, get) => ({
     }
   },
 
-  // NEW: Real-time update helpers
-  // Use these when a socket event tells you a session status changed
-  addActiveSession: (session) => 
-    set((state) => ({ 
-      activeSessions: [session, ...state.activeSessions] 
+  addActiveSession: (session) =>
+    set((state) => ({
+      activeSessions: [session, ...state.activeSessions],
     })),
 
   removeActiveSession: (sessionId) =>
     set((state) => ({
-      activeSessions: state.activeSessions.filter(s => s.id !== sessionId)
+      activeSessions: state.activeSessions.filter(
+        (s) => (s._id || s.id)?.toString() !== sessionId?.toString()
+      ),
     })),
 
-  moveActiveToPast: (sessionId) => {
-    const sessionToMove = get().activeSessions.find(s => s.id === sessionId);
-    if (sessionToMove) {
-      set((state) => ({
-        activeSessions: state.activeSessions.filter(s => s.id !== sessionId),
-        pastSessions: [sessionToMove, ...state.pastSessions]
-      }));
-    }
-  },
+  moveActiveToPast: (sessionId) =>
+    set((state) => {
+      const sessionToMove = state.activeSessions.find(
+        (s) => (s._id || s.id)?.toString() === sessionId?.toString()
+      );
+
+      if (!sessionToMove) return state;
+
+      return {
+        activeSessions: state.activeSessions.filter(
+          (s) => (s._id || s.id)?.toString() !== sessionId?.toString()
+        ),
+        pastSessions: [sessionToMove, ...state.pastSessions],
+      };
+    }),
 
   clearError: () => set({ error: null }),
 

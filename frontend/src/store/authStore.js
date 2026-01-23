@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import { authService } from "../services/authService.js";
 import useSessionStore from "./sessionStore.js";
-import { disconnectSocket } from "../utils/socketManager.js";
+import { disconnectAllSockets } from "../utils/socketManager.js";
+
+const hasCookie = () => document.cookie.includes("refreshToken");
 
 const useAuthStore = create((set, get) => ({
   user: null,
@@ -11,22 +13,18 @@ const useAuthStore = create((set, get) => ({
   error: null,
   spotifyConnected: localStorage.getItem("spotifyConnected") === "true",
   socketToken: null,
-  activeTokenPromise: null, // Tracks in-flight token requests to prevent loops
+  activeTokenPromise: null,
+  guest: false,
 
-  /**
-   * Fetches the specialized token for Socket.io authentication.
-   * Uses promise-tracking to prevent race conditions during page loads.
-   */
   fetchSocketToken: async () => {
     const state = get();
 
-    // If we already have a token, return it immediately
+    if (!state.isAuthenticated) return null;
+
     if (state.socketToken) return state.socketToken;
 
-    // If a request is already in progress, return that specific promise
     if (state.activeTokenPromise) return state.activeTokenPromise;
 
-    // Create a new request promise
     const tokenPromise = (async () => {
       try {
         const response = await authService.socketToken();
@@ -45,7 +43,6 @@ const useAuthStore = create((set, get) => ({
       }
     })();
 
-    // Store the promise so other callers (like the Socket Manager) can await it
     set({ activeTokenPromise: tokenPromise });
     return tokenPromise;
   },
@@ -63,12 +60,14 @@ const useAuthStore = create((set, get) => ({
       const response = await authService.register(userData);
       const { user } = response.data.data;
 
-      +set({
+      set({
         user,
         isAuthenticated: true,
         isLoading: false,
         isInitializing: false,
+        guest: false,
       });
+
       await get().fetchSocketToken();
       return { success: true };
     } catch (error) {
@@ -84,13 +83,15 @@ const useAuthStore = create((set, get) => ({
       const response = await authService.login(credentials);
       const { user } = response.data.data;
 
-      +set({
+      set({
         user,
         isAuthenticated: true,
         isLoading: false,
         isInitializing: false,
+        guest: false,
       });
-      await get().fetchSocketToken(); // Auto-fetch token after login
+
+      await get().fetchSocketToken();
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "Login failed";
@@ -105,7 +106,6 @@ const useAuthStore = create((set, get) => ({
     } catch (err) {
       console.warn("Server logout failed. Clearing client state anyway.");
     } finally {
-      // Clear ALL authentication and socket state
       set({
         user: null,
         isAuthenticated: false,
@@ -114,15 +114,31 @@ const useAuthStore = create((set, get) => ({
         socketToken: null,
         isInitializing: false,
         activeTokenPromise: null,
+        guest: false,
       });
 
       localStorage.removeItem("spotifyConnected");
-      disconnectSocket("/session");
+
+      disconnectAllSockets();
+
       useSessionStore.getState().reset();
     }
   },
 
   verifyToken: async ({ silent = false } = {}) => {
+    if (!hasCookie()) {
+      set({
+        user: null,
+        isAuthenticated: false,
+        isInitializing: false,
+        isLoading: false,
+        socketToken: null,
+        activeTokenPromise: null,
+        guest: true,
+      });
+      return { success: false, guest: true };
+    }
+
     if (!silent) set({ isLoading: true, error: null });
 
     try {
@@ -134,9 +150,10 @@ const useAuthStore = create((set, get) => ({
         isAuthenticated: true,
         isLoading: false,
         isInitializing: false,
+        guest: false,
       });
 
-      await get().fetchSocketToken(); // Ensure socket token is ready after verification
+      await get().fetchSocketToken();
       return { success: true, user };
     } catch (err) {
       set({
@@ -146,6 +163,7 @@ const useAuthStore = create((set, get) => ({
         isInitializing: false,
         socketToken: null,
         activeTokenPromise: null,
+        guest: false,
       });
       return { success: false };
     }
