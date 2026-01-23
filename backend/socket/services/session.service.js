@@ -45,7 +45,7 @@ class sessionService {
   }
 
   getParticipantCount(session) {
-    return session?.participants?.legth || 0;
+    return session?.participants?.length || 0;
   }
 }
 
