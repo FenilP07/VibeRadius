@@ -9,26 +9,36 @@ import SpotifyPlayer from "./pages/SpotifyPlayer.jsx";
 import SessionPage from "./pages/SessionPage.jsx"
 import { HostProfile } from "./pages/admin/HostProfile.jsx";
 import useAuthStore from "./store/authStore.js";
+import CustomerView from "./pages/CustomerView.jsx";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isInitializing } = useAuthStore();
 
-  return isAuthenticated ? children : <Navigate to="/auth/login" />;
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-dark-bg flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return isAuthenticated ? children : <Navigate to="/auth/login" replace />;
 };
 
 export default function AppRoutes() {
   return (
-    
     <Routes>
-      {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
+
       <Route path="/session" element={<SessionPage />} />
-      <Route path="/auth/login" element={<Login />} />
-      <Route path="/auth/register" element={<Register />} />
-      <Route path="/styleguide" element={<StyleGuide />} />
       <Route path="/session/:sessionCode" element={<SessionPage />} />
 
-      {/* Protected Admin/Host Routes */}
+      <Route path="/customer" element={<CustomerView />} />
+      <Route path="/customer/:sessionCode" element={<CustomerView />} />
+
+      <Route path="/auth/login" element={<Login />} />
+      <Route path="/auth/register" element={<Register />} />
+
       <Route
         path="/admin/dashboard"
         element={
@@ -48,6 +58,9 @@ export default function AppRoutes() {
       />
 
       <Route path="/search" element={<SpotifySearch />} />
+      <Route path="/styleguide" element={<StyleGuide />} />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
