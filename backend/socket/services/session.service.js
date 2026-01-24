@@ -24,7 +24,7 @@ class sessionService {
 
   async removeUserFromSession(query, userId) {
     try {
-      const session = await Session.findOneAndDelete(
+      const session = await Session.findOneAndUpdate(
         query,
         {
           $pull: {

@@ -28,7 +28,14 @@ const ProtectedRoute = ({ children }) => {
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="/session" element={<SessionPage />} />
       <Route path="/session/:sessionCode" element={<SessionPage />} />

@@ -3,7 +3,7 @@ import { authService } from "../services/authService.js";
 import useSessionStore from "./sessionStore.js";
 import { disconnectAllSockets } from "../utils/socketManager.js";
 
-const hasCookie = () => document.cookie.includes("refreshToken");
+// const hasCookie = () => document.cookie.includes("refreshToken");
 
 const useAuthStore = create((set, get) => ({
   user: null,
@@ -126,18 +126,18 @@ const useAuthStore = create((set, get) => ({
   },
 
   verifyToken: async ({ silent = false } = {}) => {
-    if (!hasCookie()) {
-      set({
-        user: null,
-        isAuthenticated: false,
-        isInitializing: false,
-        isLoading: false,
-        socketToken: null,
-        activeTokenPromise: null,
-        guest: true,
-      });
-      return { success: false, guest: true };
-    }
+    // if (!hasCookie()) {
+    //   set({
+    //     user: null,
+    //     isAuthenticated: false,
+    //     isInitializing: false,
+    //     isLoading: false,
+    //     socketToken: null,
+    //     activeTokenPromise: null,
+    //     guest: true,
+    //   });
+    //   return { success: false, guest: true };
+    // }
 
     if (!silent) set({ isLoading: true, error: null });
 
@@ -163,7 +163,7 @@ const useAuthStore = create((set, get) => ({
         isInitializing: false,
         socketToken: null,
         activeTokenPromise: null,
-        guest: false,
+        guest: true,
       });
       return { success: false };
     }
