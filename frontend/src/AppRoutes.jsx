@@ -80,10 +80,10 @@ export default function AppRoutes() {
       <Route path="/auth/login" element={<Login />} />
       <Route path="/auth/register" element={<Register />} />
 
-      <Route
+      {/* <Route
         path="/session-test"
         element={<TestSessionPage testSessionCode="URWOBR" />}
-      />
+      /> */}
 
       <Route
         path="/admin/dashboard"
