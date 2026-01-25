@@ -9,6 +9,7 @@ import SessionPage from "./pages/SessionPage.jsx";
 import { HostProfile } from "./pages/admin/HostProfile.jsx";
 import useAuthStore from "./store/authStore.js";
 import CustomerView from "./pages/CustomerView.jsx";
+import SpotifyPlayer from "./pages/SpotifyPlayer.jsx"
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isInitializing } = useAuthStore();
@@ -65,6 +66,7 @@ export default function AppRoutes() {
 
       <Route path="/search" element={<SpotifySearch />} />
       <Route path="/styleguide" element={<StyleGuide />} />
+      <Route path="/spotifyplayer" element={<SpotifyPlayer />} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
