@@ -1,5 +1,4 @@
-import mongoose from "mongoose";
-import { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const voteSchema = new Schema(
   {
@@ -9,17 +8,18 @@ const voteSchema = new Schema(
       required: true,
       index: true,
     },
-
     track_id: {
       type: Schema.Types.ObjectId,
       ref: "Queue",
       required: true,
       index: true,
     },
-
     user_id: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
+      type: String, 
+      required: true,
+    },
+    user_name: {
+      type: String, 
       required: true,
     },
   },
@@ -29,5 +29,4 @@ const voteSchema = new Schema(
 voteSchema.index({ session_id: 1, track_id: 1, user_id: 1 }, { unique: true });
 
 const Vote = mongoose.model("Vote", voteSchema);
-
 export default Vote;

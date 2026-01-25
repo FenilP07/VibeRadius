@@ -9,9 +9,10 @@ import SessionPage from "./pages/SessionPage.jsx";
 import { HostProfile } from "./pages/admin/HostProfile.jsx";
 import useAuthStore from "./store/authStore.js";
 import CustomerView from "./pages/CustomerView.jsx";
+import TestSessionPage from "./pages/test_session.jsx";
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isInitializing } = useAuthStore();
+const ProtectedRoute = ({ children, allowGuest = false }) => {
+  const { isAuthenticated, isInitializing, guest } = useAuthStore();
 
   if (isInitializing) {
     return (
@@ -19,6 +20,10 @@ const ProtectedRoute = ({ children }) => {
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
+  }
+
+  if (allowGuest && (isAuthenticated || guest)) {
+    return children;
   }
 
   return isAuthenticated ? children : <Navigate to="/auth/login" replace />;
@@ -36,14 +41,49 @@ export default function AppRoutes() {
         }
       />
 
-      <Route path="/session" element={<SessionPage />} />
-      <Route path="/session/:sessionCode" element={<SessionPage />} />
+      <Route
+        path="/session"
+        element={
+          <ProtectedRoute allowGuest={true}>
+            <SessionPage />
+          </ProtectedRoute>
+        }
+      />
 
-      <Route path="/customer" element={<CustomerView />} />
-      <Route path="/customer/:sessionCode" element={<CustomerView />} />
+      <Route
+        path="/session/:sessionCode"
+        element={
+          <ProtectedRoute allowGuest={true}>
+            <SessionPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/customer"
+        element={
+          <ProtectedRoute allowGuest={true}>
+            <CustomerView />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/customer/:sessionCode"
+        element={
+          <ProtectedRoute allowGuest={true}>
+            <CustomerView />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="/auth/login" element={<Login />} />
       <Route path="/auth/register" element={<Register />} />
+
+      <Route
+        path="/session-test"
+        element={<TestSessionPage testSessionCode="URWOBR" />}
+      />
 
       <Route
         path="/admin/dashboard"

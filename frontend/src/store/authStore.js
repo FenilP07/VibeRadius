@@ -126,19 +126,6 @@ const useAuthStore = create((set, get) => ({
   },
 
   verifyToken: async ({ silent = false } = {}) => {
-    // if (!hasCookie()) {
-    //   set({
-    //     user: null,
-    //     isAuthenticated: false,
-    //     isInitializing: false,
-    //     isLoading: false,
-    //     socketToken: null,
-    //     activeTokenPromise: null,
-    //     guest: true,
-    //   });
-    //   return { success: false, guest: true };
-    // }
-
     if (!silent) set({ isLoading: true, error: null });
 
     try {
@@ -156,6 +143,10 @@ const useAuthStore = create((set, get) => ({
       await get().fetchSocketToken();
       return { success: true, user };
     } catch (err) {
+      if (err.response?.status !== 401 && !silent) {
+        console.error("[Auth] Token verification failed:", err);
+      }
+
       set({
         user: null,
         isAuthenticated: false,
@@ -165,7 +156,8 @@ const useAuthStore = create((set, get) => ({
         activeTokenPromise: null,
         guest: true,
       });
-      return { success: false };
+
+      return { success: false, guest: true };
     }
   },
 

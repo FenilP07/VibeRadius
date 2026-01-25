@@ -7,7 +7,7 @@ export const useSessionSocket = (
   eventHandlers = {},
   { guest = false } = {}
 ) => {
-  const { isAuthenticated, socketToken } = useAuthStore();
+  const { isAuthenticated, socketToken, user } = useAuthStore();
   const handlersRef = useRef(eventHandlers);
   const [isConnected, setIsConnected] = useState(false);
   const [joinError, setJoinError] = useState(null);
@@ -17,7 +17,9 @@ export const useSessionSocket = (
   }, [eventHandlers]);
 
   useEffect(() => {
-    if (!guest && (!isAuthenticated || !socketToken)) {
+    const actualGuest = guest || !isAuthenticated;
+
+    if (!actualGuest && !socketToken) {
       console.log("⏸️ [Socket] Waiting for authentication");
       return;
     }
@@ -33,8 +35,7 @@ export const useSessionSocket = (
 
     const initSocket = async () => {
       try {
-        socketInstance = await getSocket("/session", { guest });
-
+        socketInstance = await getSocket("/session", { guest: actualGuest });
         if (!socketInstance || cancelled) return;
 
         const onConnect = () => setIsConnected(true);
@@ -85,7 +86,7 @@ export const useSessionSocket = (
         setIsConnected(false);
       }
     };
-  }, [isAuthenticated, socketToken, sessionCode, guest]);
+  }, [isAuthenticated, socketToken, sessionCode, guest, user]);
 
   return { isConnected, joinError };
 };

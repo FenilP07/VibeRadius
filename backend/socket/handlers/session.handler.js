@@ -5,17 +5,57 @@ export const handleJoinSession = async (
   socket,
   sessionNamespace,
   userId,
+  userName,
   sessionCode,
   callback
 ) => {
   try {
-    const session = await sessionService.addUserToSession(sessionCode, userId);
+    // ✅ DEBUG: Log all inputs
+    logger.info(`=== JOIN SESSION START ===`);
+    logger.info(`sessionCode: "${sessionCode}" (type: ${typeof sessionCode})`);
+    logger.info(`userId: "${userId}" (type: ${typeof userId})`);
+    logger.info(`userName: "${userName}" (type: ${typeof userName})`);
+    logger.info(`callback: ${typeof callback}`);
+
+    // Validate inputs
+    if (!sessionCode || typeof sessionCode !== 'string') {
+      logger.error(`Invalid sessionCode: ${sessionCode}`);
+      if (callback && typeof callback === 'function') {
+        callback({ success: false, message: "Invalid session code" });
+      }
+      return;
+    }
+
+    if (!userId || typeof userId !== 'string') {
+      logger.error(`Invalid userId: ${userId}`);
+      if (callback && typeof callback === 'function') {
+        callback({ success: false, message: "Invalid user ID" });
+      }
+      return;
+    }
+
+    if (!userName || typeof userName !== 'string') {
+      logger.error(`Invalid userName: ${userName}`);
+      if (callback && typeof callback === 'function') {
+        callback({ success: false, message: "Invalid user name" });
+      }
+      return;
+    }
+
+    const session = await sessionService.addUserToSession(
+      sessionCode,
+      userId,
+      userName
+    );
 
     if (!session) {
-      return callback({
-        success: false,
-        message: "Session not found",
-      });
+      if (callback && typeof callback === 'function') {
+        callback({
+          success: false,
+          message: "Session not found",
+        });
+      }
+      return;
     }
 
     const roomId = sessionService.getRoomId(session);
@@ -23,23 +63,32 @@ export const handleJoinSession = async (
 
     socket.join(roomId);
     socket.currentSessionId = roomId;
+    socket.currentSessionCode = sessionCode;
 
     sessionNamespace.to(roomId).emit("user_joined", {
       userId,
+      name: userName,
       participantCount,
     });
 
-    callback({
-      success: true,
-      session,
-    });
+    if (callback && typeof callback === 'function') {
+      callback({
+        success: true,
+        session,
+      });
+    }
+    
+    logger.info(`=== JOIN SESSION SUCCESS ===`);
   } catch (err) {
     logger.error(`Error in handleJoinSession: ${err.message}`);
-    callback({
-      success: false,
-      message: "Error joining session",
-      error: err.message,
-    });
+    logger.error(err.stack);
+    if (callback && typeof callback === 'function') {
+      callback({
+        success: false,
+        message: "Error joining session",
+        error: err.message,
+      });
+    }
   }
 };
 
@@ -55,8 +104,11 @@ export const handleLeaveSession = async (
       { session_code: sessionCode },
       userId
     );
+    
     if (!session) {
-      if (callback) callback({ success: false, message: "Session not found" });
+      if (callback && typeof callback === 'function') {
+        callback({ success: false, message: "Session not found" });
+      }
       return;
     }
 
@@ -65,34 +117,49 @@ export const handleLeaveSession = async (
 
     socket.leave(roomId);
     socket.currentSessionId = null;
+    socket.currentSessionCode = null;
 
     sessionNamespace.to(roomId).emit("user_left", {
       userId,
       participantCount,
     });
 
-    if (callback) callback({ success: true });
+    if (callback && typeof callback === 'function') {
+      callback({ success: true });
+    }
   } catch (err) {
     logger.error(`Error in handleLeaveSession: ${err.message}`);
-    if (callback)
+    if (callback && typeof callback === 'function') {
       callback({
         success: false,
         message: "Error leaving session",
         error: err.message,
       });
+    }
   }
 };
 
-export const handleDisconnect = async (sessionNamespace, userId, sessionId) => {
+export const handleDisconnect = async (sessionNamespace, userId, sessionId, sessionCode) => {
   try {
-    const session = await sessionService.removeUserFromSession(
-      { _id: sessionId },
-      userId
-    );
+    let session = null;
+    
+    if (sessionCode) {
+      logger.info(`Removing user ${userId} from session ${sessionCode}`);
+      session = await sessionService.removeUserFromSession(
+        { session_code: sessionCode },
+        userId
+      );
+    } else if (sessionId) {
+      logger.info(`Removing user ${userId} from session ID ${sessionId}`);
+      session = await sessionService.removeUserFromSession(
+        { _id: sessionId },
+        userId
+      );
+    }
 
     if (!session) {
       logger.warn(
-        `Session ${sessionId} not found during disconnect for user ${userId}`
+        `Session ${sessionCode || sessionId} not found during disconnect for user ${userId}`
       );
       return;
     }
@@ -104,7 +171,8 @@ export const handleDisconnect = async (sessionNamespace, userId, sessionId) => {
       userId,
       participantCount,
     });
-    logger.info(`User ${userId} disconnected from session ${roomId}`);
+    
+    logger.info(`User ${userId} removed from session ${roomId}. ${participantCount} participants remaining.`);
   } catch (err) {
     logger.error(`Error in handleDisconnect: ${err.message}`);
   }

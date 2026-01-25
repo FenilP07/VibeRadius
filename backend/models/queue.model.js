@@ -3,14 +3,14 @@ import mongoose, { Schema } from "mongoose";
 const queueSchema = new Schema(
   {
     session_id: {
-      type: Schema.Types.ObjectId, 
+      type: Schema.Types.ObjectId,
       ref: "Session",
       required: true,
       index: true,
     },
     track_id: {
-      type: String, 
-      required: true, 
+      type: String,
+      required: true,
     },
     title: {
       type: String,
@@ -24,16 +24,19 @@ const queueSchema = new Schema(
       type: String,
     },
     added_by: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
+      type: String, 
+      required: true,
+    },
+    added_by_name: {
+      type: String,
       required: true,
     },
     total_votes: {
-      type: Number, 
+      type: Number,
       default: 0,
       index: true,
     },
-    status: { 
+    status: {
       type: String,
       enum: ["queued", "playing", "played", "skipped"],
       default: "queued",
@@ -41,17 +44,11 @@ const queueSchema = new Schema(
     },
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 
-queueSchema.index(
-  { session_id: 1, track_id: 1 },
-  {
-    unique: true,
-  }
-);
+queueSchema.index({ session_id: 1, track_id: 1 }, { unique: true });
 
 const Queue = mongoose.model("Queue", queueSchema);
-
 export default Queue;

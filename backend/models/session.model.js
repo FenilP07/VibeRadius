@@ -3,7 +3,7 @@ import mongoose, { Schema } from "mongoose";
 const sessionSchema = new Schema(
   {
     host_id: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
@@ -19,8 +19,8 @@ const sessionSchema = new Schema(
     },
     participants: [
       {
-        type: Schema.Types.ObjectId,
-        ref: "User",
+        id: { type: String, required: true }, 
+        name: { type: String, required: true }, 
       },
     ],
     session_status: {
@@ -34,14 +34,10 @@ const sessionSchema = new Schema(
       default: null,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// sessionSchema.index({ session_code: 1 });
 sessionSchema.index({ host_id: 1, createdAt: -1 });
 
 const Session = mongoose.model("Session", sessionSchema);
-
 export default Session;

@@ -8,12 +8,15 @@ export const getSocket = async (namespace, { guest = false } = {}) => {
   const authStore = useAuthStore.getState();
 
   let token = null;
-  if (!guest) {
+  if (!guest && authStore.isAuthenticated) {
     token = authStore.socketToken || (await authStore.fetchSocketToken());
 
     if (!token) {
-      console.error(`❌ [Socket] No token available for ${namespace}`);
-      return null;
+      console.warn(
+        `⏸️ [Socket] No token available for ${namespace}, connecting as guest`
+      );
+
+      guest = true;
     }
   }
 
@@ -24,7 +27,7 @@ export const getSocket = async (namespace, { guest = false } = {}) => {
   const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
   sockets[namespace] = io(`${baseURL}${namespace}`, {
-    auth: token ? { token } : {},
+    auth: { token },
     transports: ["websocket"],
     reconnection: true,
     reconnectionAttempts: 5,
@@ -32,7 +35,9 @@ export const getSocket = async (namespace, { guest = false } = {}) => {
   });
 
   sockets[namespace].on("connect", () => {
-    console.log(`✅ [Socket] Connected to ${namespace}`);
+    console.log(
+      `✅ [Socket] Connected to ${namespace} ${guest || !token ? "(as guest)" : "(authenticated)"}`
+    );
     refreshingNamespaces.delete(namespace);
   });
 
@@ -44,7 +49,12 @@ export const getSocket = async (namespace, { guest = false } = {}) => {
       err.message === "Authentication token missing" ||
       err.message === "jwt expired";
 
-    if (isAuthError && !guest && !refreshingNamespaces.has(namespace)) {
+    if (
+      isAuthError &&
+      !guest &&
+      authStore.isAuthenticated &&
+      !refreshingNamespaces.has(namespace)
+    ) {
       refreshingNamespaces.add(namespace);
 
       console.log(`🔄 [Socket] Refreshing token for ${namespace}`);
