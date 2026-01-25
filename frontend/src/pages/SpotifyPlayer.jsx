@@ -56,7 +56,7 @@ const SpotifyPlayer = (() => {
     useEffect(() => {
         if (player === null) return;
 
-        player.addListener("player_state_changed", (state) => {
+         const handleStateChange = (state) => {
             if (!state) {
                 return;
             }
@@ -67,20 +67,26 @@ const SpotifyPlayer = (() => {
             player.getCurrentState().then((state) => {
                 !state ? setActive(false) : setActive(true);
             });
-        });
+        };
+
+        player.addListener("player_state_changed", handleStateChange);
 
         const interval = setInterval(() => {
             player.getCurrentState().then((state) => {
-                if (state) {
-                    const position = state.position;
-                    const duration = state.duration;
-                    const progress = (position / duration) * 100;
+                if (state?.duration) {
+                    const progress = (state.position / state.duration) * 100;
                     setPosition(progress);
+                } else {
+                    setPosition(0);
                 }
             });
         }, 1000);
 
-        return () => clearInterval(interval);
+        return () => {
+            clearInterval(interval);
+            player.removeListener("player_state_changed", handleStateChange);
+            player.disconnect();
+        }
     }, [player]);
 
     return (
@@ -130,10 +136,10 @@ const SpotifyPlayer = (() => {
                                 <p className="text-white/70 text-sm">{current_track.artists[0].name} • Requested by Table 4</p>
 
                                 <div className="mt-6 flex items-center gap-4">
-                                    <button className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 cursor-pointer" onClick={() => { player.togglePlay() }}>
+                                    <button className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 cursor-pointer" onClick={() => { player?.togglePlay() }}>
                                         {is_paused ? <FaPlay className="ml-1" /> : <FaPause className="ml-1" />}
                                     </button>
-                                    <button className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 cursor-pointer" onClick={() => { player.nextTrack() }}>
+                                    <button className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 cursor-pointer" onClick={() => { player?.nextTrack() }}>
                                         <FaStepForward />
                                     </button>
                                     <div className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden">
