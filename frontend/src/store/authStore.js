@@ -11,10 +11,11 @@ const useAuthStore = create((set, get) => ({
   isLoading: false,
   isInitializing: true,
   error: null,
-  spotifyConnected: localStorage.getItem("spotifyConnected") === "true",
+  spotifyConnected: false,
   socketToken: null,
   activeTokenPromise: null,
   guest: false,
+  // spotifyToken: null,
 
   fetchSocketToken: async () => {
     const state = get();
@@ -51,7 +52,7 @@ const useAuthStore = create((set, get) => ({
 
   setSpotifyConnected: (value) => {
     set({ spotifyConnected: value });
-    localStorage.setItem("spotifyConnected", value ? "true" : "false");
+    // localStorage.setItem("spotifyConnected", value ? "true" : "false");
   },
 
   register: async (userData) => {
@@ -117,7 +118,8 @@ const useAuthStore = create((set, get) => ({
         guest: false,
       });
 
-      localStorage.removeItem("spotifyConnected");
+      // localStorage.removeItem("spotifyConnected");
+      set({ spotifyConnected: false });
 
       disconnectAllSockets();
 
