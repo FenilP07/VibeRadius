@@ -48,6 +48,9 @@ const useAuthStore = create((set, get) => ({
   },
 
   setUser: (user) => set({ user, isAuthenticated: !!user }),
+  setSpotifyConnected: (connected) => {
+    set({ spotifyConnected: connected });
+  },
 
   register: async (userData) => {
     set({ isLoading: true, error: null });
