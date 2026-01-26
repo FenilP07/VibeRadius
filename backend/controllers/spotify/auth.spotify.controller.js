@@ -2,6 +2,7 @@ import axios from "axios";
 import querystring from "querystring";
 import generateRandomString from "../../utils/generateRandomString.js";
 import { deflate } from "zlib";
+import { asyncHandler } from "../../utils/asyncHandler.js";
 
 const loginSpotifyController = async (req, res) => {
   var state = generateRandomString(16);

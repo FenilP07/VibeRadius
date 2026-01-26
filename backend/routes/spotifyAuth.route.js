@@ -7,7 +7,6 @@ import {isLoggedIn} from "../middlewares/auth.middleware.js"
 const spotifyAuthRouter = Router();
 
 spotifyAuthRouter.get("/login", isLoggedIn, loginSpotifyController);
-
 spotifyAuthRouter.get("/callback", isLoggedIn, handleSpotifyCallback);
 
 export default spotifyAuthRouter;
