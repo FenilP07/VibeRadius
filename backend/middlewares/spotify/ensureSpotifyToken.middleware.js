@@ -1,5 +1,5 @@
 // middleware/ensureSpotifyToken.js
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { asyncHandler } from "../../utils/asyncHandler.js";
 import { refreshSpotifyToken } from "../../services/refreshSpotifyTokenService.js";
 import { APIError } from "../../utils/ApiError.js";
 import logger from "../../utils/logger.js";
