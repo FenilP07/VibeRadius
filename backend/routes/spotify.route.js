@@ -1,3 +1,4 @@
+// routes/spotify.js
 import { searchTrackController } from "../controllers/spotify/searchTrack.controller.js";
 import { Router } from "express";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -13,9 +14,13 @@ spotifyRouter.get("/search", searchTrackController);
 spotifyRouter.get(
   "/test-spotify-token",
   isLoggedIn,
-  refreshSpotifyToken,
+  ensureSpotifyToken,
   asyncHandler(async (req, res) => {
-    res.json({ message: "Token fresh", userId: req.user._id });
+    res.json({
+      message: "Token fresh",
+      userId: req.user._id,
+      hasToken: !!req.spotifyAccessToken,
+    });
   })
 );
 
@@ -33,12 +38,14 @@ spotifyRouter.get(
 
 spotifyRouter.get(
   "/token",
+  isLoggedIn,
   ensureSpotifyToken,
   asyncHandler(async (req, res) => {
-
     res.json({
-      accessToken:req.accessToken
-    })
+      access_token: req.spotifyAccessToken,
+      expires_at: req.spotifyTokenExpiry,
+      token_type: "Bearer",
+    });
   })
 );
 
