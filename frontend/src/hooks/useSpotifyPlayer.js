@@ -28,9 +28,17 @@ const useSpotifyPlayer = () => {
   const getToken = useCallback(async () => {
     try {
       const res = await authService.spotifyToken();
+      console.log("🔍 Token Response:", res.data);
+      console.log(
+        "🔍 Access Token (first 30 chars):",
+        res.data.access_token?.substring(0, 30)
+      );
+      console.log("🔍 Token expires at:", res.data.expires_at);
       tokenRef.current = res.data.access_token;
       return res.data.access_token;
     } catch (error) {
+      console.error("❌ Failed to get Spotify token:", error);
+      console.error("❌ Error response:", error.response?.data);
       console.error("Failed to get Spotify token:", error);
       setSpotifyConnected(false);
       return null;
