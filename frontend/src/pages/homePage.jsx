@@ -29,7 +29,8 @@ const formatDateTime = (isoDate) => {
 
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-const navigate = useNavigate();
+  const [sessionDetails, setSessionDetails] = useState(null);
+  const navigate = useNavigate();
   const {
     activeSessions,
     pastSessions,
@@ -41,10 +42,9 @@ const navigate = useNavigate();
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [fetchDashboardData]);
 
-  const handleStartNewSession = (formData) => {
-    console.log("Starting session with data:", formData);
+  const handleStartNewSession = () => {
     setIsModalOpen(false);
   };
 
@@ -117,9 +117,9 @@ const navigate = useNavigate();
                         </div>
                       </div>
                       <button className="bg-[#5C4033] hover:bg-[#3d2b22] text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ml-auto md:ml-0 shadow-lg shadow-[#5C4033]/10"
-                      onClick={()=>{
-                        navigate(`/session/${session.code}`)
-                      }}>
+                        onClick={() => {
+                          navigate(`/session/${session.code}`)
+                        }}>
                         Tune into Vibe <FaChevronRight size={12} />
                       </button>
                     </div>
@@ -143,11 +143,10 @@ const navigate = useNavigate();
                 {pastSessions.map((session, index) => (
                   <div
                     key={session.id}
-                    className={`p-6 flex items-center justify-between hover:bg-white/60 transition-colors cursor-pointer ${
-                      index !== pastSessions.length - 1
+                    className={`p-6 flex items-center justify-between hover:bg-white/60 transition-colors cursor-pointer ${index !== pastSessions.length - 1
                         ? "border-b border-[#5C4033]/5"
                         : ""
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full bg-[#5C4033]/5 flex items-center justify-center text-[#5C4033]/30">

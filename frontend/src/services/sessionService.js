@@ -5,4 +5,8 @@ export const sessionService = {
   getDashboardData: async () => {
     return await apiClient.get(`${sessionApiPrefix}/dashboard`);
   },
+
+  createSession: async (sessionData) => {
+    return await apiClient.post(`${sessionApiPrefix}/create`, sessionData);
+  }
 };
