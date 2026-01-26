@@ -126,7 +126,7 @@ const useAuthStore = create((set, get) => ({
       const response = await authService.verifyToken();
       const { user } = response.data.data;
 
-      const spotify = await authService.spotifyToken();
+      const spotify = await authService.spotifyStatus();
 
       set({
         user,

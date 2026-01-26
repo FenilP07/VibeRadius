@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { refreshSpotifyToken } from "../services/refreshSpotifyTokenService.js";
 import { isLoggedIn } from "../middlewares/auth.middleware.js";
 import SpotifyToken from "../models/spotifyToken.model.js";
+import { ensureSpotifyToken } from "../middlewares/spotify/ensureSpotifyToken.middleware.js";
 
 const spotifyRouter = Router();
 
@@ -27,6 +28,17 @@ spotifyRouter.get(
     res.json({
       connected: !!token?.refreshToken,
     });
+  })
+);
+
+spotifyRouter.get(
+  "/token",
+  ensureSpotifyToken,
+  asyncHandler(async (req, res) => {
+
+    res.json({
+      accessToken:req.accessToken
+    })
   })
 );
 
