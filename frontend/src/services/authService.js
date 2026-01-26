@@ -27,8 +27,12 @@ const authService = {
     return await apiClient.get(`${authApiPrefix}/socket-token`);
   },
 
-  spotifyToken: async () => {
+  spotifyStatus: async () => {
     return await apiClient.get("/api/spotify/status");
+  },
+
+  spotifyToken: async () => {
+    return await apiClient.get("/api/spotify/token");
   },
 };
 
