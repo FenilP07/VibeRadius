@@ -1,15 +1,22 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Music, AlertCircle, Headphones, ArrowRight } from 'lucide-react';
-import useAuthStore from '../../store/authStore.js';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Eye,
+  EyeOff,
+  Music,
+  AlertCircle,
+  Headphones,
+  ArrowRight,
+} from "lucide-react";
+import useAuthStore from "../../store/authStore.js";
 
 const Login = () => {
   const navigate = useNavigate();
   const { login, isLoading, error, clearError } = useAuthStore();
 
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
     rememberMe: false,
   });
 
@@ -20,17 +27,19 @@ const Login = () => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     }));
-    if (validationErrors[name]) setValidationErrors((prev) => ({ ...prev, [name]: '' }));
+    if (validationErrors[name])
+      setValidationErrors((prev) => ({ ...prev, [name]: "" }));
     if (error) clearError();
   };
 
   const validate = () => {
     const errors = {};
-    if (!formData.email) errors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Invalid email format';
-    if (!formData.password) errors.password = 'Password is required';
+    if (!formData.email) errors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      errors.email = "Invalid email format";
+    if (!formData.password) errors.password = "Password is required";
     return errors;
   };
 
@@ -41,8 +50,12 @@ const Login = () => {
       setValidationErrors(errors);
       return;
     }
-    const result = await login({ email: formData.email, password: formData.password });
-    if (result.success) navigate('/');
+    const result = await login({
+      email: formData.email,
+      password: formData.password,
+      rememberMe: formData.rememberMe,
+    });
+    if (result.success) navigate("/");
   };
 
   return (
@@ -54,8 +67,11 @@ const Login = () => {
       </div>
 
       {/* Grainy Texture */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
-        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} 
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        }}
       />
 
       <div className="relative z-10 w-full max-w-md">
@@ -67,8 +83,12 @@ const Login = () => {
               <Headphones className="w-4 h-4 text-[#E07A3D]" />
             </div>
           </div>
-          <h1 className="text-4xl font-black text-[#5C4033] tracking-tighter">VibeRadius</h1>
-          <p className="text-[#5C4033]/60 font-medium mt-2">Connect your space to the rhythm.</p>
+          <h1 className="text-4xl font-black text-[#5C4033] tracking-tighter">
+            VibeRadius
+          </h1>
+          <p className="text-[#5C4033]/60 font-medium mt-2">
+            Connect your space to the rhythm.
+          </p>
         </div>
 
         {/* Glassmorphism Form */}
@@ -82,7 +102,12 @@ const Login = () => {
             )}
 
             <div className="space-y-2">
-              <label htmlFor="email" className="text-xs font-bold uppercase tracking-widest text-[#5C4033]/50 ml-1">Email</label>
+              <label
+                htmlFor="email"
+                className="text-xs font-bold uppercase tracking-widest text-[#5C4033]/50 ml-1"
+              >
+                Email
+              </label>
               <input
                 id="email"
                 type="email"
@@ -92,24 +117,33 @@ const Login = () => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="host@venue.com"
-                className={`w-full px-5 py-4 rounded-2xl bg-white/50 border ${validationErrors.email ? 'border-red-400' : 'border-white'} focus:border-[#E07A3D] focus:ring-4 focus:ring-[#E07A3D]/5 transition-all outline-none text-[#5C4033] font-medium shadow-inner disabled:opacity-50`}
+                className={`w-full px-5 py-4 rounded-2xl bg-white/50 border ${validationErrors.email ? "border-red-400" : "border-white"} focus:border-[#E07A3D] focus:ring-4 focus:ring-[#E07A3D]/5 transition-all outline-none text-[#5C4033] font-medium shadow-inner disabled:opacity-50`}
               />
-              {validationErrors.email && <p className="text-[10px] text-red-500 font-bold ml-2 uppercase tracking-tight">{validationErrors.email}</p>}
+              {validationErrors.email && (
+                <p className="text-[10px] text-red-500 font-bold ml-2 uppercase tracking-tight">
+                  {validationErrors.email}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="text-xs font-bold uppercase tracking-widest text-[#5C4033]/50 ml-1">Password</label>
+              <label
+                htmlFor="password"
+                className="text-xs font-bold uppercase tracking-widest text-[#5C4033]/50 ml-1"
+              >
+                Password
+              </label>
               <div className="relative">
                 <input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   autoComplete="current-password"
                   disabled={isLoading}
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className={`w-full px-5 py-4 rounded-2xl bg-white/50 border ${validationErrors.password ? 'border-red-400' : 'border-white'} focus:border-[#E07A3D] focus:ring-4 focus:ring-[#E07A3D]/5 transition-all outline-none text-[#5C4033] font-medium shadow-inner pr-14 disabled:opacity-50`}
+                  className={`w-full px-5 py-4 rounded-2xl bg-white/50 border ${validationErrors.password ? "border-red-400" : "border-white"} focus:border-[#E07A3D] focus:ring-4 focus:ring-[#E07A3D]/5 transition-all outline-none text-[#5C4033] font-medium shadow-inner pr-14 disabled:opacity-50`}
                 />
                 <button
                   type="button"
@@ -123,11 +157,23 @@ const Login = () => {
 
             <div className="flex items-center justify-between px-1">
               <label className="flex items-center gap-2 cursor-pointer group">
-                <input type="checkbox" name="rememberMe" checked={formData.rememberMe} onChange={handleChange} 
-                  className="w-4 h-4 rounded-lg border-gray-300 text-[#E07A3D] focus:ring-[#E07A3D]" />
-                <span className="text-sm text-[#5C4033]/60 group-hover:text-[#5C4033] transition-colors">Remember</span>
+                <input
+                  type="checkbox"
+                  name="rememberMe"
+                  checked={formData.rememberMe}
+                  onChange={handleChange}
+                  className="w-4 h-4 rounded-lg border-gray-300 text-[#E07A3D] focus:ring-[#E07A3D]"
+                />
+                <span className="text-sm text-[#5C4033]/60 group-hover:text-[#5C4033] transition-colors">
+                  Remember
+                </span>
               </label>
-              <button type="button" className="text-sm font-bold text-[#E07A3D] hover:text-[#C4612A]">Forgot?</button>
+              <button
+                type="button"
+                className="text-sm font-bold text-[#E07A3D] hover:text-[#C4612A]"
+              >
+                Forgot?
+              </button>
             </div>
 
             <button
@@ -143,7 +189,11 @@ const Login = () => {
                 </div>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  Enter Dashboard <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  Enter Dashboard{" "}
+                  <ArrowRight
+                    size={18}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
                 </span>
               )}
             </button>
@@ -152,10 +202,10 @@ const Login = () => {
           {/* Register Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
+              Don't have an account?{" "}
               <button
                 type="button"
-                onClick={() => navigate('/auth/register')}
+                onClick={() => navigate("/auth/register")}
                 className="text-[#E07A3D] hover:text-[#C4612A] font-medium"
               >
                 Register here
@@ -168,4 +218,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;
