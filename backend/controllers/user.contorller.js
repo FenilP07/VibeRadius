@@ -62,7 +62,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
 // LOGIN USER
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, rememberMe } = req.body;
   if (!email || !password)
     throw new APIError(400, "Email and password required!");
 
@@ -79,10 +79,15 @@ const loginUser = asyncHandler(async (req, res) => {
     "-password -refreshToken"
   );
 
+  const refreshCookieOptions = {
+    ...BASE_COOKIE_OPTIONS,
+    maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined,
+  };
+
   res
     .status(200)
     .cookie("accessToken", accessToken, ACCESS_TOKEN_COOKIE_OPTIONS)
-    .cookie("refreshToken", refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS)
+    .cookie("refreshToken", refreshToken, refreshCookieOptions)
     .json(new APIResponse(200, { user: loggedInUser }, "Login successful!"));
 });
 
