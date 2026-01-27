@@ -171,7 +171,7 @@ const useSpotifyPlayer = () => {
     getToken,
     setSpotifyConnected,
     transferPlayback,
-  ]); // ADD isAuthenticated, isInitializing
+  ]);
 
   useEffect(() => {
     if (!player) return;
