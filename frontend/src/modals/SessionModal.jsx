@@ -3,17 +3,23 @@ import { useState } from 'react';
 import { FaMusic, FaHashtag, FaMagic, FaTimes } from 'react-icons/fa';
 import useSessionStore from '../store/sessionStore.js';
 
-export default function CreateSessionModal({ isOpen, onClose, onCreate }) {
+export default function CreateSessionModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const [sessionName, setSessionName] = useState('');
 
-  const { createSession } = useSessionStore();
+  const { createSession, fetchDashboardData } = useSessionStore();
 
-  const handleCreateSession = async (e) => {
-    e.preventDefault();
-    await createSession({ name: sessionName });
-    onCreate();
+  const handleCreateSession = async (name) => {
+    
+    const result = await createSession({ name: sessionName });
+
+    if(result.success){
+      await fetchDashboardData();
+      onClose();
+    } else {
+      alert("Failed to create session: " + result.response);
+    }
   }
 
 

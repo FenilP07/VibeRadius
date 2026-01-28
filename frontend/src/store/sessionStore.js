@@ -19,27 +19,28 @@ const useSessionStore = create((set) => ({
         pastSessions: dashboard?.pastSessions ?? [],
         isLoading: false,
       });
+
+      return { success: true, response: dashboard };
     } catch (error) {
       set({
         error: error.response?.data?.message || "Failed to load sessions",
         isLoading: false,
       });
+      return { success: false, response: error };
     }
   },
 
   /* Create a new session */
-  createSession: async (nameOfSession) => {
+  createSession: async (sessionDetails) => {
     set({ isLoading: true, error: null });
     try {
-      console.log("Creating session with name:", nameOfSession.name);
-      const response = await sessionService.createSession({ sessionName: nameOfSession.name });
+      console.log("Creating session with name:", sessionDetails.name);
+      const response = await sessionService.createSession({ sessionName: sessionDetails.name });
       const newSession = response?.data?.data;
 
       console.log("Created session:", newSession);
-      set((state) => ({
-        activeSessions: [newSession, ...state.activeSessions],
-        isLoading: false,
-      }))
+      set({ isLoading: false });
+      return { success: true, response: newSession };
     } catch (error) {
       console.error("Error creating session:", error);
       set({

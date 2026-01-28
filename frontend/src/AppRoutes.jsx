@@ -4,7 +4,7 @@ import { AdminDashboard } from "./pages/admin/AdminDashboard.jsx";
 import SpotifySearch from "./components/SpotifySearch";
 import Login from "./pages/auth/Login.jsx";
 import Register from "./pages/auth/Register.jsx";
-import HomePage from "./pages/homePage.jsx";
+import HomePage from "./pages/HomePage.jsx";
 import SessionPage from "./pages/SessionPage.jsx";
 import { HostProfile } from "./pages/admin/HostProfile.jsx";
 import useAuthStore from "./store/authStore.js";
