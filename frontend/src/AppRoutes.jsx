@@ -4,7 +4,7 @@ import { AdminDashboard } from "./pages/admin/AdminDashboard.jsx";
 import SpotifySearch from "./components/SpotifySearch";
 import Login from "./pages/auth/Login.jsx";
 import Register from "./pages/auth/Register.jsx";
-import HomePage from "./pages/HomePage.jsx"; 
+import HomePage from "./pages/homePage.jsx"; 
 import SessionPage from "./pages/SessionPage.jsx";
 import { HostProfile } from "./pages/admin/HostProfile.jsx";
 import useAuthStore from "./store/authStore.js";
@@ -80,6 +80,11 @@ export default function AppRoutes() {
 
       <Route path="/auth/login" element={<Login />} />
       <Route path="/auth/register" element={<Register />} />
+
+      {/* <Route
+        path="/session-test"
+        element={<TestSessionPage testSessionCode="URWOBR" />}
+      /> */}
 
       <Route
         path="/session-test"

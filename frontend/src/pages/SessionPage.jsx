@@ -21,9 +21,7 @@ import {
 import { NavbarAdmin } from "../components/admin/NavbarAdmin";
 import useSpotifyPlayer from "../hooks/useSpotifyPlayer";
 
-
-
-// --- 1. Toast Notification ---
+// --- Toast Notification ---
 const Toast = ({ message, type, onClose }) => {
   React.useEffect(() => {
     const timer = setTimeout(onClose, 3000);
