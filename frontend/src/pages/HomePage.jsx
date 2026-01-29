@@ -29,7 +29,8 @@ const formatDateTime = (isoDate) => {
 
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-const navigate = useNavigate();
+  const navigate = useNavigate();
+
   const {
     activeSessions,
     pastSessions,
@@ -39,14 +40,10 @@ const navigate = useNavigate();
     clearError,
   } = useSessionStore();
 
+  // Fetch dashboard data on mount
   useEffect(() => {
     fetchDashboardData();
-  }, []);
-
-  const handleStartNewSession = (formData) => {
-    console.log("Starting session with data:", formData);
-    setIsModalOpen(false);
-  };
+  }, [fetchDashboardData]);
 
   return (
     <div className="min-h-screen bg-[#FEF3EB] text-[#5C4033] relative overflow-x-hidden">
@@ -88,44 +85,49 @@ const navigate = useNavigate();
                 Live Now
               </h2>
 
-              {isLoading && activeSessions.length === 0 ? (
+              {/* Loading State */}
+              {isLoading && activeSessions.length === 0 && (
                 <div className="p-12 border-2 border-dashed border-[#5C4033]/10 rounded-[2.5rem] text-center bg-white/30">
                   <p className="text-[#5C4033]/40 font-bold">
                     Loading sessions...
                   </p>
                 </div>
-              ) : activeSessions.length > 0 ? (
-                activeSessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="bg-white/70 backdrop-blur-md border border-white p-6 rounded-[2rem] shadow-sm hover:shadow-xl hover:shadow-[#5C4033]/5 transition-all group"
-                  >
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                      <div className="flex items-center gap-5">
-                        <div className="w-16 h-16 bg-[#FEF3EB] rounded-2xl flex items-center justify-center text-[#E07A3D] shadow-inner">
-                          <FaMusic size={24} />
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-bold text-[#5C4033] group-hover:text-[#E07A3D] transition-colors">
-                            {session.name}
-                          </h3>
-                          <div className="flex items-center gap-4 mt-1 text-sm font-medium text-[#5C4033]/50">
-                            <span>{session.songs} in queue</span>
-                            <span className="opacity-30">•</span>
-                            <span>{session.listeners} active listeners</span>
-                          </div>
+              )}
+
+              {/* Success State */}
+              {!isLoading && activeSessions.length > 0 && activeSessions.map((session) => (
+                <div
+                  key={session.id}
+                  className="bg-white/70 backdrop-blur-md border border-white p-6 rounded-[2rem] shadow-sm hover:shadow-xl hover:shadow-[#5C4033]/5 transition-all group"
+                >
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-5">
+                      <div className="w-16 h-16 bg-[#FEF3EB] rounded-2xl flex items-center justify-center text-[#E07A3D] shadow-inner">
+                        <FaMusic size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-[#5C4033] group-hover:text-[#E07A3D] transition-colors">
+                          {session.name}
+                        </h3>
+                        <div className="flex items-center gap-4 mt-1 text-sm font-medium text-[#5C4033]/50">
+                          <span>{session.songs} in queue</span>
+                          <span className="opacity-30">•</span>
+                          <span>{session.listeners} active listeners</span>
                         </div>
                       </div>
-                      <button className="bg-[#5C4033] hover:bg-[#3d2b22] text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ml-auto md:ml-0 shadow-lg shadow-[#5C4033]/10"
-                      onClick={()=>{
+                    </div>
+                    <button className="bg-[#5C4033] hover:bg-[#3d2b22] text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ml-auto md:ml-0 shadow-lg shadow-[#5C4033]/10"
+                      onClick={() => {
                         navigate(`/session/${session.code}`)
                       }}>
-                        Tune into Vibe <FaChevronRight size={12} />
-                      </button>
-                    </div>
+                      Tune into Vibe <FaChevronRight size={12} />
+                    </button>
                   </div>
-                ))
-              ) : (
+                </div>
+              ))}
+
+              {/* Empty State */}
+              {!isLoading && activeSessions.length === 0 && (
                 <div className="p-12 border-2 border-dashed border-[#5C4033]/10 rounded-[2.5rem] text-center bg-white/30">
                   <p className="text-[#5C4033]/40 font-bold">
                     No active sessions. Start one to get the music moving!
@@ -143,11 +145,10 @@ const navigate = useNavigate();
                 {pastSessions.map((session, index) => (
                   <div
                     key={session.id}
-                    className={`p-6 flex items-center justify-between hover:bg-white/60 transition-colors cursor-pointer ${
-                      index !== pastSessions.length - 1
-                        ? "border-b border-[#5C4033]/5"
-                        : ""
-                    }`}
+                    className={`p-6 flex items-center justify-between hover:bg-white/60 transition-colors cursor-pointer ${index !== pastSessions.length - 1
+                      ? "border-b border-[#5C4033]/5"
+                      : ""
+                      }`}
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full bg-[#5C4033]/5 flex items-center justify-center text-[#5C4033]/30">
@@ -231,7 +232,6 @@ const navigate = useNavigate();
       <CreateSessionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onCreate={handleStartNewSession}
       />
     </div>
   );

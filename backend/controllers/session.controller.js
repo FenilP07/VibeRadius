@@ -7,26 +7,21 @@ import { APIError } from "../utils/ApiError.js";
 
 //create session
 const createSession = asyncHandler(async (req, res) => {
+  logger.info("Processing create session request");
   const { sessionName } = req.body;
   const hostId = req.user._id;
   const code = generateSessionCode();
 
-  logger.info("Create session request received", {
-    hostId,
-    sessionName,
-  });
+  logger.info(`Create session request received from host: ${hostId} with name: ${sessionName}`);
 
   const session = await Session.create({
     host_id: hostId,
     session_name: sessionName,
     session_code: code,
+    session_status: "active",
   });
 
-  logger.info("Session created successfully", {
-    sessionId: session._id,
-    sessionCode: session.session_code,
-    hostId,
-  });
+  logger.info(`Session created successfully with ID: ${session._id} and code: ${session.session_code} by host: ${hostId}`);
 
   return res.status(201).json(
     new APIResponse(
@@ -37,9 +32,10 @@ const createSession = asyncHandler(async (req, res) => {
           host_id: session.host_id,
           session_name: session.session_name,
           session_code: session.session_code,
+          session_status: session.session_status,
         },
       },
-      "Session created succesfully"
+      "Session created successfully"
     )
   );
 });
@@ -54,7 +50,7 @@ const getMySession = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new APIResponse(200, { session }, "session fetched succesfully"));
+    .json(new APIResponse(200, { session }, "Session fetched successfully"));
 });
 
 //join session
@@ -79,14 +75,14 @@ const joinSession = asyncHandler(async (req, res) => {
           participants: session.participants,
         },
       },
-      "Joined session succesfully"
+      "Joined session successfully"
     )
   );
 });
 
 //leave session
 
-//session status cahange
+//session status change
 const sessionStatusChange = asyncHandler(async (req, res) => {
   const hostId = req.user._id;
   const { sessionId } = req.params;

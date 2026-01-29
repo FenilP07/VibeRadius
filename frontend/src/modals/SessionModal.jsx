@@ -1,20 +1,39 @@
 import React from 'react';
+import { useState } from 'react';
 import { FaMusic, FaHashtag, FaMagic, FaTimes } from 'react-icons/fa';
+import useSessionStore from '../store/sessionStore.js';
 
-export default function CreateSessionModal({ isOpen, onClose, onCreate }) {
+export default function CreateSessionModal({ isOpen, onClose }) {
   if (!isOpen) return null;
+
+  const [sessionName, setSessionName] = useState('');
+
+  const { createSession, fetchDashboardData } = useSessionStore();
+
+  const handleCreateSession = async (name) => {
+    
+    const result = await createSession({ name: sessionName });
+
+    if(result.success){
+      await fetchDashboardData();
+      onClose();
+    } else {
+      alert("Failed to create session: " + result.response);
+    }
+  }
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-accent-charcoal/40 backdrop-blur-sm transition-opacity" 
-        onClick={onClose} 
+      <div
+        className="absolute inset-0 bg-accent-charcoal/40 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
       />
 
       {/* Modal Content */}
       <div className="relative bg-surface w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        
+
         {/* Header */}
         <div className="bg-primary p-6 text-white flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -23,7 +42,7 @@ export default function CreateSessionModal({ isOpen, onClose, onCreate }) {
             </div>
             <h2 className="text-xl font-bold">Launch New Session</h2>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="text-white/80 hover:text-white transition-colors"
           >
@@ -32,8 +51,8 @@ export default function CreateSessionModal({ isOpen, onClose, onCreate }) {
         </div>
 
         {/* Form */}
-        <form className="p-8 space-y-6" onSubmit={(e) => { e.preventDefault(); onCreate(); }}>
-          
+        <form className="p-8 space-y-6" onSubmit={handleCreateSession}>
+
           {/* Session Name */}
           <div>
             <label className="block text-text-primary font-semibold mb-2 flex items-center gap-2">
@@ -41,6 +60,8 @@ export default function CreateSessionModal({ isOpen, onClose, onCreate }) {
             </label>
             <input
               type="text"
+              value={sessionName}
+              onChange={(e) => setSessionName(e.target.value)}
               placeholder="e.g. Friday Afternoon Chill"
               className="w-full px-4 py-3 rounded-xl bg-surface-bg border border-accent/10 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               required
@@ -91,14 +112,14 @@ export default function CreateSessionModal({ isOpen, onClose, onCreate }) {
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-2">
-            <button 
+            <button
               type="button"
               onClick={onClose}
               className="flex-1 px-6 py-3 rounded-xl font-bold text-text-secondary hover:bg-surface-alt transition-colors"
             >
               Cancel
             </button>
-            <button 
+            <button
               type="submit"
               className="flex-[2] bg-primary hover:bg-primary-dark text-white py-3 rounded-xl font-bold shadow-lg shadow-primary/20 transition-all"
             >
