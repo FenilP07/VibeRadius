@@ -4,6 +4,7 @@ import {
   FaPlus, FaCheckCircle, FaTimes, FaCommentAlt,
   FaCircle, FaArrowLeft, FaListUl, FaHistory, FaBolt
 } from 'react-icons/fa';
+import useLiveSessionStore from '../store/liveSessionStore.js';
 import QueueModal from '../modals/QueueModal.jsx';
 
 export default function CustomerView() {
