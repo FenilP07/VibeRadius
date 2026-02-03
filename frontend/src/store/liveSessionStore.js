@@ -121,20 +121,19 @@ const useLiveSessionStore = create((set, get) => ({
       },
     }),
 
-    /* Remove track from queue */
-    removeTrackFromQueue: (trackId) =>
-      set((state) => {
-        const newQueue = state.queue.filter((track) => track.id !== trackId);
-        return {
-          queue: newQueue,
-          upNext: newQueue[0] || null,
-          stats: {
-            ...state.stats,
-            inQueue: newQueue.length,
-            estimatedWait: newQueue.length * 3,
-          },
-        };
-      }),
+  removeTrackFromQueue: (trackId) =>
+    set((state) => {
+      const newQueue = state.queue.filter((track) => track.id !== trackId);
+      return {
+        queue: newQueue,
+        upNext: newQueue[0] || null,
+        stats: {
+          ...state.stats,
+          inQueue: newQueue.length,
+          estimatedWait: newQueue.length * 3,
+        },
+      };
+    }),
 
   updateSessionStatus: (status) => set({ sessionStatus: status }),
 

@@ -3,13 +3,19 @@ import useAuthStore from "../store/authStore";
 import useLiveSessionStore from "../store/liveSessionStore";
 import { authService } from "../services/authService";
 
+let globalPlayer = null;
+let globalDeviceId = null;
+let globalReady = false;
+let sdkLoading = false;
+let sdkLoaded = false;
+
 const useSpotifyPlayer = () => {
-  const [player, setPlayer] = useState(null);
+  const [player, setPlayer] = useState(globalPlayer);
   const [is_paused, setPaused] = useState(false);
   const [is_active, setActive] = useState(false);
   const [position, setPosition] = useState(0);
-  const [deviceId, setDeviceId] = useState(null);
-  const [isReady, setIsReady] = useState(false);
+  const [deviceId, setDeviceId] = useState(globalDeviceId);
+  const [isReady, setIsReady] = useState(globalReady);
 
   const spotifyConnected = useAuthStore((state) => state.spotifyConnected);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -22,7 +28,6 @@ const useSpotifyPlayer = () => {
   const isPlaying = useLiveSessionStore((state) => state.isPlaying);
 
   const tokenRef = useRef(null);
-  const scriptRef = useRef(null);
 
   const getToken = useCallback(async () => {
     try {
@@ -65,21 +70,28 @@ const useSpotifyPlayer = () => {
   useEffect(() => {
     if (isInitializing || !isAuthenticated || !spotifyConnected) return;
 
-    if (!scriptRef.current) {
+    if (globalPlayer && globalDeviceId) {
+      setPlayer(globalPlayer);
+      setDeviceId(globalDeviceId);
+      setIsReady(globalReady);
+      return;
+    }
+
+    if (!sdkLoading && !sdkLoaded) {
+      sdkLoading = true;
       const script = document.createElement("script");
       script.src = "https://sdk.scdn.co/spotify-player.js";
       script.async = true;
       document.body.appendChild(script);
-      scriptRef.current = script;
     }
 
-    let playerInstance = null;
+    const initializePlayer = async () => {
+      if (globalPlayer) return;
 
-    window.onSpotifyWebPlaybackSDKReady = async () => {
       const token = await getToken();
       if (!token) return;
 
-      playerInstance = new window.Spotify.Player({
+      const playerInstance = new window.Spotify.Player({
         name: "VibeRadius Player",
         getOAuthToken: async (cb) => {
           const freshToken = await getToken();
@@ -88,18 +100,24 @@ const useSpotifyPlayer = () => {
         volume: 0.5,
       });
 
-      setPlayer(playerInstance);
-
-      playerInstance.addListener("ready", ({ device_id }) => {
+      playerInstance.addListener("ready", async ({ device_id }) => {
         console.log("✅ Player ready", device_id);
-        setDeviceId(device_id);
-        transferPlayback(device_id);
 
+        globalPlayer = playerInstance;
+        globalDeviceId = device_id;
+
+        setPlayer(playerInstance);
+        setDeviceId(device_id);
+
+        await transferPlayback(device_id);
+        await new Promise((res) => setTimeout(res, 400));
+
+        globalReady = true;
         setIsReady(true);
       });
 
       playerInstance.addListener("not_ready", () => {
-        setDeviceId(null);
+        globalReady = false;
         setIsReady(false);
       });
 
@@ -117,7 +135,6 @@ const useSpotifyPlayer = () => {
           setActive(false);
           return;
         }
-
         setPaused(state.paused);
         setActive(true);
       });
@@ -125,12 +142,15 @@ const useSpotifyPlayer = () => {
       await playerInstance.connect();
     };
 
-    return () => {
-      if (playerInstance) {
-        playerInstance.disconnect();
-      }
-      window.onSpotifyWebPlaybackSDKReady = null;
-    };
+    if (window.Spotify) {
+      sdkLoaded = true;
+      initializePlayer();
+    } else {
+      window.onSpotifyWebPlaybackSDKReady = () => {
+        sdkLoaded = true;
+        initializePlayer();
+      };
+    }
   }, [
     spotifyConnected,
     isAuthenticated,
@@ -141,7 +161,7 @@ const useSpotifyPlayer = () => {
   ]);
 
   useEffect(() => {
-    if (!player || !deviceId || !sessionTrack?.uri) return;
+    if (!player || !deviceId || !isReady || !sessionTrack?.uri) return;
 
     let cancelled = false;
 
@@ -157,9 +177,7 @@ const useSpotifyPlayer = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            uris: [sessionTrack.uri],
-          }),
+          body: JSON.stringify({ uris: [sessionTrack.uri] }),
         }
       );
     };
@@ -169,10 +187,10 @@ const useSpotifyPlayer = () => {
     return () => {
       cancelled = true;
     };
-  }, [sessionTrack?.id, deviceId, player, getToken]);
+  }, [sessionTrack?.id, deviceId, player, isReady, getToken]);
 
   useEffect(() => {
-    if (!player || !deviceId) return;
+    if (!player || !deviceId || !isReady) return;
 
     const syncPlayback = async () => {
       const token = await getToken();
@@ -184,15 +202,13 @@ const useSpotifyPlayer = () => {
         `https://api.spotify.com/v1/me/player/${endpoint}?device_id=${deviceId}`,
         {
           method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
     };
 
     syncPlayback();
-  }, [isPlaying, deviceId, player, getToken]);
+  }, [isPlaying, deviceId, player, isReady, getToken]);
 
   useEffect(() => {
     if (!player) return;
@@ -215,7 +231,7 @@ const useSpotifyPlayer = () => {
     is_active,
     position,
     deviceId,
-    isReady
+    isReady,
   };
 };
 
