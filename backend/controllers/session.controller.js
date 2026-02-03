@@ -12,7 +12,9 @@ const createSession = asyncHandler(async (req, res) => {
   const hostId = req.user._id;
   const code = generateSessionCode();
 
-  logger.info(`Create session request received from host: ${hostId} with name: ${sessionName}`);
+  logger.info(
+    `Create session request received from host: ${hostId} with name: ${sessionName}`
+  );
 
   const session = await Session.create({
     host_id: hostId,
@@ -21,7 +23,9 @@ const createSession = asyncHandler(async (req, res) => {
     session_status: "active",
   });
 
-  logger.info(`Session created successfully with ID: ${session._id} and code: ${session.session_code} by host: ${hostId}`);
+  logger.info(
+    `Session created successfully with ID: ${session._id} and code: ${session.session_code} by host: ${hostId}`
+  );
 
   return res.status(201).json(
     new APIResponse(
@@ -133,6 +137,11 @@ const getDashboardData = asyncHandler(async (req, res) => {
       $match: {
         host_id: hostId,
         session_status: "active",
+      },
+    },
+    {
+      $sort: {
+        createdAt: -1,
       },
     },
     {

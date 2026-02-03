@@ -15,11 +15,16 @@ import { NavbarAdmin } from "../components/admin/NavbarAdmin";
 import CreateSessionModal from "../modals/SessionModal";
 import useSessionStore from "../store/sessionStore";
 import { useNavigate } from "react-router-dom";
-import QRCodeForSession from "../components/QRCodeForSession.jsx";
 
 // -----------------------
-// Helper: format date + time
+// Helper: Skeleton Component (Fixed className prop)
 // -----------------------
+const Skeleton = ({ className }) => (
+  <div
+    className={`relative overflow-hidden bg-[#5C4033]/10 rounded-xl before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent ${className}`}
+  />
+);
+
 const formatDateTime = (isoDate) => {
   const date = new Date(isoDate);
   return date.toLocaleString("en-CA", {
@@ -36,13 +41,10 @@ export default function HomePage() {
     activeSessions,
     setActiveSessionCode,
     pastSessions,
-    isLoading,
-    error,
+    dashboardLoading,
     fetchDashboardData,
-    clearError,
   } = useSessionStore();
 
-  // Fetch dashboard data on mount
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
@@ -56,6 +58,13 @@ export default function HomePage() {
       </div>
 
       <NavbarAdmin />
+
+      {/* Global Shimmer Animation Style */}
+<style dangerouslySetInnerHTML={{ __html: `
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+      `}} />
 
       <main className="relative z-10 max-w-7xl mx-auto pt-28 pb-12 px-6 lg:px-16">
         {/* Header */}
@@ -78,65 +87,76 @@ export default function HomePage() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          {/* Main List Area */}
           <div className="lg:col-span-2 space-y-10">
             {/* Live Now Section */}
             <section className="animate-in fade-in slide-in-from-left-4 duration-700 delay-100">
               <h2 className="text-sm font-black uppercase tracking-[0.2em] text-[#E07A3D] mb-6 flex items-center gap-2">
-                <FaDotCircle className="animate-pulse" />
+                <FaDotCircle
+                  className={dashboardLoading ? "opacity-50" : "animate-pulse"}
+                />
                 Live Now
               </h2>
 
-              {/* Loading State */}
-              {isLoading && activeSessions.length === 0 && (
-                <div className="p-12 border-2 border-dashed border-[#5C4033]/10 rounded-[2.5rem] text-center bg-white/30">
-                  <p className="text-[#5C4033]/40 font-bold">
-                    Loading sessions...
-                  </p>
-                </div>
-              )}
-
-              {/* Success State */}
-              {!isLoading && activeSessions.length > 0 && activeSessions.map((session) => (
-                <div
-                  key={session.id}
-                  className="bg-white/70 backdrop-blur-md border border-white p-6 rounded-[2rem] shadow-sm hover:shadow-xl hover:shadow-[#5C4033]/5 transition-all group"
-                >
-                  <div className="flex items-center justify-between flex-wrap gap-4">
-                    <div className="flex items-center gap-5">
-                      <div className="w-16 h-16 bg-[#FEF3EB] rounded-2xl flex items-center justify-center text-[#E07A3D] shadow-inner">
-                        <FaMusic size={24} />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-[#5C4033] group-hover:text-[#E07A3D] transition-colors">
-                          {session.name}
-                        </h3>
-                        <div className="flex items-center gap-4 mt-1 text-sm font-medium text-[#5C4033]/50">
-                          <span>{session.songs} in queue</span>
-                          <span className="opacity-30">•</span>
-                          <span>{session.listeners} active listeners</span>
+              <div className="space-y-4">
+                {dashboardLoading ? (
+                  /* --- LIVE SESSIONS SKELETON --- */
+                  [1].map((i) => (
+                    <div
+                      key={i}
+                      className="bg-white/50 border border-white p-6 rounded-[2rem] flex items-center justify-between flex-wrap gap-4"
+                    >
+                      <div className="flex items-center gap-5">
+                        <Skeleton className="w-16 h-16 rounded-2xl" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-6 w-48" />
+                          <Skeleton className="h-4 w-32" />
                         </div>
                       </div>
+                      <Skeleton className="h-12 w-36 rounded-xl" />
                     </div>
-                    <button className="bg-[#5C4033] hover:bg-[#3d2b22] text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ml-auto md:ml-0 shadow-lg shadow-[#5C4033]/10"
-                      onClick={() => {
-                        setActiveSessionCode(session.code);
-                        navigate(`/session/${session.code}`)
-                      }}>
-                      Tune into Vibe <FaChevronRight size={12} />
-                    </button>
+                  ))
+                ) : activeSessions.length > 0 ? (
+                  activeSessions.map((session) => (
+                    <div
+                      key={session.id}
+                      className="bg-white/70 backdrop-blur-md border border-white p-6 rounded-[2rem] shadow-sm hover:shadow-xl hover:shadow-[#5C4033]/5 transition-all group"
+                    >
+                      <div className="flex items-center justify-between flex-wrap gap-4">
+                        <div className="flex items-center gap-5">
+                          <div className="w-16 h-16 bg-[#FEF3EB] rounded-2xl flex items-center justify-center text-[#E07A3D] shadow-inner">
+                            <FaMusic size={24} />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold text-[#5C4033] group-hover:text-[#E07A3D] transition-colors">
+                              {session.name}
+                            </h3>
+                            <div className="flex items-center gap-4 mt-1 text-sm font-medium text-[#5C4033]/50">
+                              <span>{session.songs} in queue</span>
+                              <span className="opacity-30">•</span>
+                              <span>{session.listeners} active listeners</span>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          className="bg-[#5C4033] hover:bg-[#3d2b22] text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ml-auto md:ml-0 shadow-lg shadow-[#5C4033]/10"
+                          onClick={() => {
+                            setActiveSessionCode(session.code);
+                            navigate(`/session/${session.code}`);
+                          }}
+                        >
+                          Tune into Vibe <FaChevronRight size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-12 border-2 border-dashed border-[#5C4033]/10 rounded-[2.5rem] text-center bg-white/30">
+                    <p className="text-[#5C4033]/40 font-bold">
+                      No active sessions. Start one to get the music moving!
+                    </p>
                   </div>
-                </div>
-              ))}
-
-              {/* Empty State */}
-              {!isLoading && activeSessions.length === 0 && (
-                <div className="p-12 border-2 border-dashed border-[#5C4033]/10 rounded-[2.5rem] text-center bg-white/30">
-                  <p className="text-[#5C4033]/40 font-bold">
-                    No active sessions. Start one to get the music moving!
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
             </section>
 
             {/* Recent History Area */}
@@ -145,44 +165,70 @@ export default function HomePage() {
                 Recent History
               </h2>
               <div className="bg-white/40 border border-white/50 rounded-[2.5rem] overflow-hidden backdrop-blur-sm">
-                {pastSessions.map((session, index) => (
-                  <div
-                    key={session.id}
-                    className={`p-6 flex items-center justify-between hover:bg-white/60 transition-colors cursor-pointer ${index !== pastSessions.length - 1
-                      ? "border-b border-[#5C4033]/5"
-                      : ""
+                {dashboardLoading ? (
+                  /* --- HISTORY SKELETON --- */
+                  [1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="p-6 flex items-center justify-between border-b border-[#5C4033]/5"
+                    >
+                      <div className="flex items-center gap-4">
+                        <Skeleton className="w-10 h-10 rounded-full" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-40" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      </div>
+                      <div className="text-right space-y-2">
+                        <Skeleton className="h-4 w-24 ml-auto" />
+                        <Skeleton className="h-3 w-16 ml-auto" />
+                      </div>
+                    </div>
+                  ))
+                ) : pastSessions.length > 0 ? (
+                  pastSessions.map((session, index) => (
+                    <div
+                      key={session.id}
+                      className={`p-6 flex items-center justify-between hover:bg-white/60 transition-colors cursor-pointer ${
+                        index !== pastSessions.length - 1
+                          ? "border-b border-[#5C4033]/5"
+                          : ""
                       }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-[#5C4033]/5 flex items-center justify-center text-[#5C4033]/30">
-                        <FaHistory />
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-[#5C4033]/5 flex items-center justify-center text-[#5C4033]/30">
+                          <FaHistory />
+                        </div>
+                        <div>
+                          <p className="font-bold text-[#5C4033]">
+                            {session.name}
+                          </p>
+                          <p className="text-[10px] font-black text-[#5C4033]/30 uppercase tracking-widest">
+                            Ended • {formatDateTime(session.date)}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-bold text-[#5C4033]">
-                          {session.name}
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-[#5C4033]/80">
+                          {session.totalSongs} songs played
                         </p>
-                        <p className="text-[10px] font-black text-[#5C4033]/30 uppercase tracking-widest">
-                          Ended • {formatDateTime(session.date)}
-                        </p>
+                        <button className="text-[#E07A3D] text-[10px] font-black uppercase tracking-widest hover:underline mt-1">
+                          View Analytics
+                        </button>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-[#5C4033]/80">
-                        {session.totalSongs} songs played
-                      </p>
-                      <button className="text-[#E07A3D] text-[10px] font-black uppercase tracking-widest hover:underline mt-1">
-                        View Analytics
-                      </button>
-                    </div>
+                  ))
+                ) : (
+                  <div className="p-10 text-center text-[#5C4033]/40 font-bold">
+                    No session history yet.
                   </div>
-                ))}
+                )}
               </div>
             </section>
           </div>
 
           {/* Sidebar Area */}
           <aside className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
-            {/* Host Tip Card */}
             <div className="bg-[#3d2b22] text-white p-8 rounded-[2.5rem] shadow-2xl shadow-[#3d2b22]/20 relative overflow-hidden group">
               <div className="relative z-10">
                 <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
@@ -202,7 +248,6 @@ export default function HomePage() {
               />
             </div>
 
-            {/* Quick Management Card */}
             <div className="bg-white/70 backdrop-blur-md p-8 rounded-[2.5rem] border border-white shadow-sm">
               <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#5C4033]/40 mb-6">
                 Quick Management
