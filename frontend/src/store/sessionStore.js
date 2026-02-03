@@ -1,17 +1,18 @@
 import { create } from "zustand";
 import { sessionService } from "../services/sessionService.js";
-import { act } from "react";
 
 const useSessionStore = create((set) => ({
   activeSessions: [],
   activeSessionCode: null,
   pastSessions: [],
-  isLoading: false,
+
+  dashboardLoading: false,
+  createLoading: false,
   error: null,
 
   /* Fetch dashboard data */
   fetchDashboardData: async () => {
-    set({ isLoading: true, error: null });
+    set({ dashboardLoading: true, error: null });
     try {
       const response = await sessionService.getDashboardData();
       const dashboard = response?.data?.data;
@@ -19,14 +20,14 @@ const useSessionStore = create((set) => ({
       set({
         activeSessions: dashboard?.activeSessions ?? [],
         pastSessions: dashboard?.pastSessions ?? [],
-        isLoading: false,
+        dashboardLoading: false,
       });
 
       return { success: true, response: dashboard };
     } catch (error) {
       set({
         error: error.response?.data?.message || "Failed to load sessions",
-        isLoading: false,
+        dashboardLoading: false,
       });
       return { success: false, response: error };
     }
@@ -34,21 +35,23 @@ const useSessionStore = create((set) => ({
 
   /* Create a new session */
   createSession: async (sessionDetails) => {
-    set({ isLoading: true, error: null });
+    set({ createLoading: true, error: null });
     try {
       console.log("Creating session with name:", sessionDetails.name);
-      const response = await sessionService.createSession({ sessionName: sessionDetails.name });
+      const response = await sessionService.createSession({
+        sessionName: sessionDetails.name,
+      });
       const newSession = response?.data?.data;
 
       console.log("Created session:", newSession);
-      set({ isLoading: false });
+      set({ createLoading: false });
       return { success: true, response: newSession };
     } catch (error) {
       console.error("Error creating session:", error);
       set({
         error: error.response?.data?.message || "Failed to create session",
-        isLoading: false,
-      })
+        createLoading: false,
+      });
     }
   },
 
@@ -57,8 +60,8 @@ const useSessionStore = create((set) => ({
       set({ activeSessionCode: code });
     } catch (error) {
       set({ error: "Failed to set active session code" });
-  }
-},
+    }
+  },
 
   /* Add a new active session */
   addActiveSession: (session) =>
@@ -91,7 +94,7 @@ const useSessionStore = create((set) => ({
       };
     }),
 
-    /* Clear any error */
+  /* Clear any error */
   clearError: () => set({ error: null }),
 
   /* Reset the store to initial state */
@@ -100,7 +103,8 @@ const useSessionStore = create((set) => ({
       activeSessions: [],
       activeSessionCode: null,
       pastSessions: [],
-      isLoading: false,
+      dashboardLoading: false,
+      createLoading: false,
       error: null,
     }),
 }));
