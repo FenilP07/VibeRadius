@@ -43,6 +43,7 @@ const QueueModal = ({ isOpen, onClose }) => {
     const addToQueue = async (track) => {
         try {
             await setQueue(track);
+            onClose();
         } catch (err) {
             setError("Failed to add track to queue. Please try again.");
             console.error("Error adding track to queue:", err);
