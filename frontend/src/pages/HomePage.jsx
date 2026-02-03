@@ -60,11 +60,11 @@ export default function HomePage() {
       <NavbarAdmin />
 
       {/* Global Shimmer Animation Style */}
-      <style>{`
-        `@keyframes` shimmer {
+<style dangerouslySetInnerHTML={{ __html: `
+        @keyframes shimmer {
           100% { transform: translateX(100%); }
         }
-      `}</style>
+      `}} />
 
       <main className="relative z-10 max-w-7xl mx-auto pt-28 pb-12 px-6 lg:px-16">
         {/* Header */}
