@@ -26,6 +26,7 @@ import useAuthStore from "../store/authStore";
 import useSessionStore from "../store/sessionStore.js";
 import { useSessionSocket, useQueueActions } from "../socket/session.socket";
 import QueueModal from "../modals/QueueModal.jsx";
+import { disconnectSocket } from "../utils/socketManager.js";
 
 // --- Toast Notification ---
 const Toast = ({ message, type, onClose }) => {
@@ -135,7 +136,16 @@ export default function SessionPage() {
 
   const { refreshSessionData } = useQueueActions();
 
-  const { player, is_paused, is_active, position,isReady } = useSpotifyPlayer();
+  const handleLeaveSession = () => {
+    disconnectSocket("/session");
+    useLiveSessionStore.getState().reset();
+
+    setActiveSessionCode(null);
+    navigate("/");
+  };
+
+  const { player, is_paused, is_active, position, isReady } =
+    useSpotifyPlayer();
 
   useEffect(() => {
     if (urlSessionCode && urlSessionCode !== sessionCode) {
@@ -290,6 +300,15 @@ export default function SessionPage() {
               {participants.length > 0 && (
                 <span className="absolute top-3.5 right-3.5 w-2.5 h-2.5 bg-primary rounded-full border-2 border-surface animate-bounce" />
               )}
+            </button>
+            <button
+              onClick={handleLeaveSession}
+              className="px-6 py-4 rounded-2xl font-bold flex items-center gap-3
+             bg-error/10 text-error border border-error/20
+             hover:bg-error hover:text-white
+             transition-all active:scale-95 shadow-sm"
+            >
+              <FaTimes /> Leave
             </button>
             <button
               onClick={() => setIsQueueOpen(true)}

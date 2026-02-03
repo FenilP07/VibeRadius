@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, use } from "react";
 import useAuthStore from "../store/authStore";
 import useLiveSessionStore from "../store/liveSessionStore";
 import { authService } from "../services/authService";
@@ -224,6 +224,26 @@ const useSpotifyPlayer = () => {
 
     return () => clearInterval(interval);
   }, [player]);
+
+  useEffect(() => {
+    return () => {
+      if (globalPlayer) {
+        console.log("Disconnecting Spotify Player");
+        try {
+          globalPlayer.disconnect();
+        } catch (e) {
+          console.warn("Player already disconnected");
+        }
+        globalPlayer = null;
+        globalDeviceId = null;
+        globalReady = false;
+
+        setPlayer(null);
+        setDeviceId(null);
+        setIsReady(false);
+      }
+    };
+  }, []);
 
   return {
     player,
