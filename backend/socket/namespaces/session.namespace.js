@@ -134,6 +134,32 @@ const registerSessionNamespace = (io) => {
         }
       }
     });
+
+    socket.on("error", (err) => {
+      logger.error(`Socket error for user ${userId}: ${err.message}`);
+    });
+
+    socket.on("connect_error", (err) => {
+      logger.error(`Connection error for user ${userId}: ${err.message}`);
+    });
+
+    socket.on("connect_timeout", () => {
+      logger.warn(`Connection timeout for user ${userId}`);
+    });
+
+    socket.on("reconnect_attempt", () => { 
+      logger.info(`Reconnection attempt for user ${userId}`);
+    });
+
+    socket.on("reconnect_failed", () => {
+      logger.error(`Reconnection failed for user ${userId}`);
+    });
+
+    socket.on("reconnect", (attemptNumber) => {
+      logger.info(
+        `User ${userId} reconnected to /session after ${attemptNumber} attempts`
+      );
+    });
   });
 };
 

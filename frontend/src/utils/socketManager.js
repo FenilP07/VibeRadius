@@ -4,7 +4,7 @@ import useAuthStore from "../store/authStore";
 const sockets = {};
 const refreshingNamespaces = new Set();
 
-export const getSocket = async (namespace, { guest = false } = {}) => {
+const getSocket = async (namespace, { guest = false } = {}) => {
   const authStore = useAuthStore.getState();
 
   let token = null;
@@ -21,6 +21,7 @@ export const getSocket = async (namespace, { guest = false } = {}) => {
   }
 
   if (sockets[namespace]?.connected) {
+    console.log(`✅ [Socket] Reusing existing connection for ${namespace}`);
     return sockets[namespace];
   }
 
@@ -78,7 +79,7 @@ export const getSocket = async (namespace, { guest = false } = {}) => {
   return sockets[namespace];
 };
 
-export const updateSocketToken = (namespace, token) => {
+const updateSocketToken = (namespace, token) => {
   const socket = sockets[namespace];
   if (socket) {
     console.log(`🔄 [Socket] Updating token for ${namespace}`);
@@ -87,7 +88,7 @@ export const updateSocketToken = (namespace, token) => {
   }
 };
 
-export const disconnectSocket = (namespace) => {
+const disconnectSocket = (namespace) => {
   const socket = sockets[namespace];
   if (socket) {
     console.log(`🛑 [Socket] Disconnecting ${namespace}`);
@@ -98,7 +99,9 @@ export const disconnectSocket = (namespace) => {
   }
 };
 
-export const disconnectAllSockets = () => {
+const disconnectAllSockets = () => {
   console.log("🛑 [Socket] Disconnecting all sockets");
   Object.keys(sockets).forEach(disconnectSocket);
 };
+
+export { getSocket, updateSocketToken, disconnectSocket, disconnectAllSockets };

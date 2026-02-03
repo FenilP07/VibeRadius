@@ -243,11 +243,13 @@ export default function SessionPage() {
         participants={participants}
       />
 
-      <QueueModal
-        isOpen={isQueueOpen}
-        onClose={() => setIsQueueOpen(false)}
-      // queue={displayQueue}
-      />
+      {isQueueOpen && (
+        <QueueModal
+          isOpen={isQueueOpen}
+          onClose={() => setIsQueueOpen(false)}
+        // queue={displayQueue}
+        />
+      )}
 
       <main className="max-w-7xl mx-auto p-6 lg:p-10 pt-24 lg:pt-32">
         {/* DASHBOARD HEADER */}
