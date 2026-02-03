@@ -40,11 +40,22 @@ export default function HomePage() {
     pastSessions,
     dashboardLoading,
     fetchDashboardData,
+    initializeDashboardSocket,
+    cleanupDashboardWebSocket,
+    isWebSocketConnected,
   } = useSessionStore();
 
   useEffect(() => {
     fetchDashboardData();
-  }, [fetchDashboardData]);
+    initializeDashboardSocket();
+    return () => {
+      cleanupDashboardWebSocket();
+    };
+  }, [
+    fetchDashboardData,
+    initializeDashboardSocket,
+    cleanupDashboardWebSocket,
+  ]);
 
   return (
     <div className="min-h-screen bg-[#FEF3EB] text-[#5C4033] relative overflow-x-hidden">
