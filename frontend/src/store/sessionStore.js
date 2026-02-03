@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { sessionService } from "../services/sessionService.js";
+import { getSocket, disconnectSocket } from "../utils/socketManager.js";
 
-const useSessionStore = create((set) => ({
+const useSessionStore = create((set, get) => ({
   activeSessions: [],
   activeSessionCode: null,
   pastSessions: [],
@@ -9,6 +10,9 @@ const useSessionStore = create((set) => ({
   dashboardLoading: false,
   createLoading: false,
   error: null,
+
+  isWebSocketConnected: false,
+  dashboardSocket: null,
 
   /* Fetch dashboard data */
   fetchDashboardData: async () => {
@@ -31,6 +35,105 @@ const useSessionStore = create((set) => ({
       });
       return { success: false, response: error };
     }
+  },
+
+  initializeDashboardSocket: async () => {
+    try {
+      const socket = await getSocket("/dashboard");
+      if (!socket) {
+        console.error("[Dashboard] Failed to get socket instance");
+        return;
+      }
+      set({ dashboardSocket: socket, isWebSocketConnected: true });
+
+      const onConnect = () => {
+        console.log("[Dashboard] WebSocket connected");
+        set({ isWebSocketConnected: true });
+
+        socket.emit("subscribe_dashboard", (response) => {
+          if (response?.success) {
+            console.log("[Dashboard] Successfully subscribed", response.data);
+          }
+        });
+      };
+      const onDisconnect = (reason) => {
+        console.log("[Dashboard] WebSocket disconnected:", reason);
+        set({ isWebSocketConnected: false });
+      };
+
+      const onUserJoined = (data) => {
+        console.log("[Dashboard] User joined:", data);
+        const { sessionCode, participantCount } = data;
+
+        set((state) => {
+          activeSessions: state.activeSessions.map((session) => {
+            session.code === sessionCode
+              ? { ...session, listeners: participantCount }
+              : session;
+          });
+        });
+      };
+
+      const onUserLeft = (data) => {
+        console.log("[Dashboard] User left:", data);
+        const { sessionCode, participantCount } = data;
+
+        set((state) => ({
+          activeSessions: state.activeSessions.map((session) =>
+            session.code === sessionCode
+              ? { ...session, listeners: participantCount }
+              : session
+          ),
+        }));
+      };
+
+      socket.on("connect", onConnect);
+      socket.on("disconnect", onDisconnect);
+      socket.on("user_joined", onUserJoined);
+      socket.on("user_left", onUserLeft);
+
+      if (socket.connected) {
+        socket.emit("subscribe_dashboard", (response) => {
+          if (response?.success) {
+            console.log("[Dashboard] Successfully subscribed", response.data);
+          }
+        });
+        set({ isWebSocketConnected: true });
+      }
+
+      console.log("[Dashboard] WebSocket listeners registered");
+    } catch (error) {
+      console.error("[Dashboard] Error initializing socket:", error);
+      set({ error: "Failed to connect to live updates" });
+    }
+  },
+
+  cleanupDashboardWebSocket: () => {
+    const { dashboardSocket } = get();
+    if (!dashboardSocket) {
+      console.log("[Dashboard] No socket to cleanup");
+      return;
+    }
+    console.log("[Dashboard] Cleaning up WebSocket");
+
+    if (dashboardSocket.connected) {
+      dashboardSocket.emit("unsubscribe_dashboard", (response) => {
+        if (response?.success) {
+          console.log("[Dashboard] Successfully unsubscribed");
+        }
+      });
+    }
+    dashboardSocket.off("connect");
+    dashboardSocket.off("disconnect");
+    dashboardSocket.off("user_joined");
+    dashboardSocket.off("user_left");
+
+    disconnectSocket("/dashboard");
+
+    set({
+      dashboardSocket: null,
+      isWebSocketConnected: false,
+    });
   },
 
   /* Create a new session */
@@ -106,6 +209,8 @@ const useSessionStore = create((set) => ({
       dashboardLoading: false,
       createLoading: false,
       error: null,
+      isWebSocketConnected: false,
+      dashboardSocket: null,
     }),
 }));
 

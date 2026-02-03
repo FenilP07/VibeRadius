@@ -16,9 +16,6 @@ import CreateSessionModal from "../modals/SessionModal";
 import useSessionStore from "../store/sessionStore";
 import { useNavigate } from "react-router-dom";
 
-// -----------------------
-// Helper: Skeleton Component (Fixed className prop)
-// -----------------------
 const Skeleton = ({ className }) => (
   <div
     className={`relative overflow-hidden bg-[#5C4033]/10 rounded-xl before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent ${className}`}
@@ -43,28 +40,51 @@ export default function HomePage() {
     pastSessions,
     dashboardLoading,
     fetchDashboardData,
+    initializeDashboardSocket,
+    cleanupDashboardWebSocket,
+    isWebSocketConnected,
   } = useSessionStore();
 
   useEffect(() => {
     fetchDashboardData();
-  }, [fetchDashboardData]);
+    initializeDashboardSocket();
+    return () => {
+      cleanupDashboardWebSocket();
+    };
+  }, [
+    fetchDashboardData,
+    initializeDashboardSocket,
+    cleanupDashboardWebSocket,
+  ]);
 
   return (
     <div className="min-h-screen bg-[#FEF3EB] text-[#5C4033] relative overflow-x-hidden">
       {/* Background Visuals */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#E07A3D]/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#5C4033]/5 rounded-full blur-[120px]" />
+
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div
+          className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#E07A3D]/10 rounded-full blur-[100px] transform-gpu"
+          style={{ willChange: "transform" }}
+        />
+
+        <div
+          className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#5C4033]/5 rounded-full blur-[100px] transform-gpu"
+          style={{ willChange: "transform" }}
+        />
       </div>
 
       <NavbarAdmin />
 
       {/* Global Shimmer Animation Style */}
-<style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         @keyframes shimmer {
           100% { transform: translateX(100%); }
         }
-      `}} />
+      `,
+        }}
+      />
 
       <main className="relative z-10 max-w-7xl mx-auto pt-28 pb-12 px-6 lg:px-16">
         {/* Header */}
@@ -228,7 +248,7 @@ export default function HomePage() {
           </div>
 
           {/* Sidebar Area */}
-          <aside className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
+          {/* <aside className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
             <div className="bg-[#3d2b22] text-white p-8 rounded-[2.5rem] shadow-2xl shadow-[#3d2b22]/20 relative overflow-hidden group">
               <div className="relative z-10">
                 <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
@@ -273,7 +293,7 @@ export default function HomePage() {
                 ))}
               </nav>
             </div>
-          </aside>
+          </aside> */}
         </div>
       </main>
 
