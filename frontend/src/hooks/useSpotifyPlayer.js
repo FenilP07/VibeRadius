@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, use } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import useAuthStore from "../store/authStore";
 import useLiveSessionStore from "../store/liveSessionStore";
 import { authService } from "../services/authService";
@@ -53,15 +53,12 @@ const useSpotifyPlayer = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            device_ids: [device_id],
-            play: false,
-          }),
+          body: JSON.stringify({ device_ids: [device_id], play: false }),
         });
 
         console.log("✅ Playback transferred");
       } catch (err) {
-        console.error("Playback transfer failed", err);
+        console.warn("Playback transfer failed", err);
       }
     },
     [getToken]
@@ -169,17 +166,21 @@ const useSpotifyPlayer = () => {
       const token = await getToken();
       if (!token || cancelled) return;
 
-      await fetch(
-        `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ uris: [sessionTrack.uri] }),
-        }
-      );
+      try {
+        await fetch(
+          `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ uris: [sessionTrack.uri] }),
+          }
+        );
+      } catch (err) {
+        console.warn("Spotify play error", err);
+      }
     };
 
     playTrack();
@@ -198,13 +199,17 @@ const useSpotifyPlayer = () => {
 
       const endpoint = isPlaying ? "play" : "pause";
 
-      await fetch(
-        `https://api.spotify.com/v1/me/player/${endpoint}?device_id=${deviceId}`,
-        {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      try {
+        await fetch(
+          `https://api.spotify.com/v1/me/player/${endpoint}?device_id=${deviceId}`,
+          {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      } catch (err) {
+        console.warn("Spotify sync error", err);
+      }
     };
 
     syncPlayback();
@@ -227,32 +232,16 @@ const useSpotifyPlayer = () => {
 
   useEffect(() => {
     return () => {
-      if (globalPlayer) {
-        console.log("Disconnecting Spotify Player");
-        try {
-          globalPlayer.disconnect();
-        } catch (e) {
-          console.warn("Player already disconnected");
-        }
-        globalPlayer = null;
-        globalDeviceId = null;
-        globalReady = false;
-
-        setPlayer(null);
-        setDeviceId(null);
-        setIsReady(false);
-      }
+      setPlayer(null);
+      setPaused(false);
+      setActive(false);
+      setPosition(0);
+      setDeviceId(globalDeviceId);
+      setIsReady(globalReady);
     };
   }, []);
 
-  return {
-    player,
-    is_paused,
-    is_active,
-    position,
-    deviceId,
-    isReady,
-  };
+  return { player, is_paused, is_active, position, deviceId, isReady };
 };
 
 export default useSpotifyPlayer;
