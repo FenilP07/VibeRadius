@@ -45,26 +45,26 @@ const Toast = ({ message, type, onClose }) => {
       className={`flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-xl animate-in slide-in-from-top duration-300 ${styles[type]}`}
     >
       <div
-        className={`w-2.5 h-2.5 rounded-full ${type === "join"
-          ? "bg-success"
-          : type === "leave"
-            ? "bg-error"
-            : "bg-info"
-          } animate-pulse`}
+        className={`w-2.5 h-2.5 rounded-full ${
+          type === "join"
+            ? "bg-success"
+            : type === "leave"
+              ? "bg-error"
+              : "bg-info"
+        } animate-pulse`}
       />
       <span className="text-sm font-bold">{message}</span>
     </div>
   );
 };
 
-
-
 // --- Activity Drawer ---
 const ActivityDrawer = ({ isOpen, onClose, participants }) => {
   return (
     <div
-      className={`fixed top-0 right-0 h-full w-80 bg-surface/90 backdrop-blur-xl shadow-2xl z-[140] transform transition-transform duration-500 ease-in-out border-l border-primary-subtle ${isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+      className={`fixed top-0 right-0 h-full w-80 bg-surface/90 backdrop-blur-xl shadow-2xl z-[140] transform transition-transform duration-500 ease-in-out border-l border-primary-subtle ${
+        isOpen ? "translate-x-0" : "translate-x-full"
+      }`}
     >
       <div className="p-6 pt-28 flex flex-col h-full">
         <div className="flex items-center justify-between mb-8">
@@ -114,7 +114,8 @@ export default function SessionPage() {
   const { isAuthenticated, socketToken } = useAuthStore();
 
   // Session store
-  const { activeSessionCode, setActiveSessionCode, clearError } = useSessionStore();
+  const { activeSessionCode, setActiveSessionCode, clearError } =
+    useSessionStore();
 
   // Zustand store selectors
   const {
@@ -133,6 +134,8 @@ export default function SessionPage() {
   } = useLiveSessionStore();
 
   const { refreshSessionData } = useQueueActions();
+
+  const { player, is_paused, is_active, position,isReady } = useSpotifyPlayer();
 
   useEffect(() => {
     if (urlSessionCode && urlSessionCode !== sessionCode) {
@@ -168,7 +171,7 @@ export default function SessionPage() {
     []
   );
 
-  useSessionSocket(sessionCode || null, socketEventHandlers);
+  useSessionSocket(isReady ? sessionCode : null, socketEventHandlers);
   const addToast = (message, type) => {
     const id = Date.now();
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -181,8 +184,6 @@ export default function SessionPage() {
     };
   }, []);
 
-  const { player, is_paused, is_active, position } = useSpotifyPlayer();
-
   const toggleLock = () => {
     setIsLocked(!isLocked);
     addToast(
@@ -193,7 +194,6 @@ export default function SessionPage() {
 
   const displayTrack = currentTrack;
   const displayQueue = queue.length > 0 ? queue : [];
-
 
   /* QR Code Navigation */
   const handleQRCodeClick = () => {
@@ -246,7 +246,7 @@ export default function SessionPage() {
       <QueueModal
         isOpen={isQueueOpen}
         onClose={() => setIsQueueOpen(false)}
-      // queue={displayQueue}
+        // queue={displayQueue}
       />
 
       <main className="max-w-7xl mx-auto p-6 lg:p-10 pt-24 lg:pt-32">
@@ -255,10 +255,11 @@ export default function SessionPage() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <span
-                className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border ${isConnected && sessionStatus === "active"
-                  ? "text-success bg-success-light border-success/10"
-                  : "text-text-muted bg-surface border-primary-subtle/20"
-                  }`}
+                className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border ${
+                  isConnected && sessionStatus === "active"
+                    ? "text-success bg-success-light border-success/10"
+                    : "text-text-muted bg-surface border-primary-subtle/20"
+                }`}
               >
                 <FaCircle
                   className={`text-[6px] ${isConnected ? "animate-pulse" : ""}`}
@@ -331,10 +332,11 @@ export default function SessionPage() {
                   </span>
                   <button
                     onClick={toggleLock}
-                    className={`p-2.5 rounded-xl transition-all ${isLocked
-                      ? "bg-error text-white scale-110"
-                      : "bg-white/5 text-white/40 hover:text-white"
-                      }`}
+                    className={`p-2.5 rounded-xl transition-all ${
+                      isLocked
+                        ? "bg-error text-white scale-110"
+                        : "bg-white/5 text-white/40 hover:text-white"
+                    }`}
                     title={isLocked ? "Unlock Requests" : "Lock Requests"}
                   >
                     {isLocked ? <FaLock size={14} /> : <FaUnlock size={14} />}
@@ -358,10 +360,11 @@ export default function SessionPage() {
                         player.togglePlay();
                       }
                     }}
-                    className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all shadow-xl ${is_active
-                      ? "bg-white text-accent-dark hover:scale-105 active:scale-95"
-                      : "bg-white/20 text-white/40 cursor-not-allowed"
-                      }`}
+                    className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all shadow-xl ${
+                      is_active
+                        ? "bg-white text-accent-dark hover:scale-105 active:scale-95"
+                        : "bg-white/20 text-white/40 cursor-not-allowed"
+                    }`}
                   >
                     <FaPlay className="ml-1" size={20} />
                   </button>
@@ -428,7 +431,8 @@ export default function SessionPage() {
                       {stats.estimatedWait || displayQueue.length * 3} Minutes
                     </span>
                   </div>
-                  <button className="p-4 bg-surface-bg border border-primary-subtle rounded-2xl text-text-primary hover:text-primary transition-all shadow-sm"
+                  <button
+                    className="p-4 bg-surface-bg border border-primary-subtle rounded-2xl text-text-primary hover:text-primary transition-all shadow-sm"
                     onClick={(e) => {
                       e.preventDefault();
                       handleQRCodeClick();
@@ -486,7 +490,10 @@ export default function SessionPage() {
                         <FaForward size={14} />
                       </button>
                       <button
-                        onClick={() => { addToast("Song Removed from Queue", "leave"); removeTrackFromQueue(song.id); }}
+                        onClick={() => {
+                          addToast("Song Removed from Queue", "leave");
+                          removeTrackFromQueue(song.id);
+                        }}
                         className="p-3 bg-surface-bg border border-primary-subtle rounded-xl text-text-muted hover:text-error hover:border-error opacity-0 group-hover:opacity-100 transition-all shadow-sm"
                       >
                         <FaTrashAlt size={14} />

@@ -9,6 +9,7 @@ const useSpotifyPlayer = () => {
   const [is_active, setActive] = useState(false);
   const [position, setPosition] = useState(0);
   const [deviceId, setDeviceId] = useState(null);
+  const [isReady, setIsReady] = useState(false);
 
   const spotifyConnected = useAuthStore((state) => state.spotifyConnected);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -93,10 +94,13 @@ const useSpotifyPlayer = () => {
         console.log("✅ Player ready", device_id);
         setDeviceId(device_id);
         transferPlayback(device_id);
+
+        setIsReady(true);
       });
 
       playerInstance.addListener("not_ready", () => {
         setDeviceId(null);
+        setIsReady(false);
       });
 
       playerInstance.addListener("authentication_error", async () => {
@@ -211,6 +215,7 @@ const useSpotifyPlayer = () => {
     is_active,
     position,
     deviceId,
+    isReady
   };
 };
 
