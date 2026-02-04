@@ -3,12 +3,28 @@ import useAuthStore from "../store/authStore";
 import useLiveSessionStore from "../store/liveSessionStore";
 import { authService } from "../services/authService";
 
+let globalPlayer = null;
+let globalDeviceId = null;
+let globalReady = false;
+let sdkLoading = false;
+let sdkLoaded = false;
+
+export const resetSpotifyPlayer = () => {
+  if (globalPlayer) {
+    globalPlayer.disconnect();
+  }
+  globalPlayer = null;
+  globalDeviceId = null;
+  globalReady = false;
+};
+
 const useSpotifyPlayer = () => {
-  const [player, setPlayer] = useState(null);
+  const [player, setPlayer] = useState(globalPlayer);
   const [is_paused, setPaused] = useState(false);
   const [is_active, setActive] = useState(false);
   const [position, setPosition] = useState(0);
-  const [deviceId, setDeviceId] = useState(null);
+  const [deviceId, setDeviceId] = useState(globalDeviceId);
+  const [isReady, setIsReady] = useState(globalReady);
 
   const spotifyConnected = useAuthStore((state) => state.spotifyConnected);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -17,12 +33,9 @@ const useSpotifyPlayer = () => {
     (state) => state.setSpotifyConnected
   );
 
-  const sessionTrack = useLiveSessionStore((state) => state.currentTrack);
-  const isPlaying = useLiveSessionStore((state) => state.isPlaying);
-
   const tokenRef = useRef(null);
-  const scriptRef = useRef(null);
 
+  // --- Get fresh Spotify token ---
   const getToken = useCallback(async () => {
     try {
       const res = await authService.spotifyToken();
@@ -35,50 +48,72 @@ const useSpotifyPlayer = () => {
     }
   }, [setSpotifyConnected]);
 
+  // --- Transfer playback to this device safely ---
   const transferPlayback = useCallback(
-    async (device_id) => {
-      try {
-        const token = await getToken();
-        if (!token) return;
+    async (device_id, play = false) => {
+      const token = await getToken();
+      if (!token) return;
 
+      try {
+        // Get available devices
+        const devicesRes = await fetch(
+          "https://api.spotify.com/v1/me/player/devices",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const devicesData = await devicesRes.json();
+        const availableDevice =
+          devicesData.devices.find((d) => d.id === device_id) ||
+          devicesData.devices[0];
+
+        if (!availableDevice) {
+          console.warn("No active Spotify devices found");
+          return;
+        }
+
+        // Transfer playback
         await fetch("https://api.spotify.com/v1/me/player", {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            device_ids: [device_id],
-            play: false,
-          }),
+          body: JSON.stringify({ device_ids: [availableDevice.id], play }),
         });
-
-        console.log("✅ Playback transferred");
+        console.log("✅ Playback transferred to device:", availableDevice.name);
       } catch (err) {
-        console.error("Playback transfer failed", err);
+        console.warn("Playback transfer failed", err);
       }
     },
     [getToken]
   );
 
+  // --- Initialize Spotify SDK and player ---
   useEffect(() => {
     if (isInitializing || !isAuthenticated || !spotifyConnected) return;
 
-    if (!scriptRef.current) {
+    if (globalPlayer && globalDeviceId) {
+      setPlayer(globalPlayer);
+      setDeviceId(globalDeviceId);
+      setIsReady(globalReady);
+      return;
+    }
+
+    if (!sdkLoading && !sdkLoaded) {
+      sdkLoading = true;
       const script = document.createElement("script");
       script.src = "https://sdk.scdn.co/spotify-player.js";
       script.async = true;
       document.body.appendChild(script);
-      scriptRef.current = script;
     }
 
-    let playerInstance = null;
-
-    window.onSpotifyWebPlaybackSDKReady = async () => {
+    const initializePlayer = async () => {
+      if (globalPlayer) return;
       const token = await getToken();
       if (!token) return;
 
-      playerInstance = new window.Spotify.Player({
+      const playerInstance = new window.Spotify.Player({
         name: "VibeRadius Player",
         getOAuthToken: async (cb) => {
           const freshToken = await getToken();
@@ -87,16 +122,21 @@ const useSpotifyPlayer = () => {
         volume: 0.5,
       });
 
-      setPlayer(playerInstance);
-
-      playerInstance.addListener("ready", ({ device_id }) => {
+      playerInstance.addListener("ready", async ({ device_id }) => {
         console.log("✅ Player ready", device_id);
+        globalPlayer = playerInstance;
+        globalDeviceId = device_id;
+        setPlayer(playerInstance);
         setDeviceId(device_id);
-        transferPlayback(device_id);
+
+        await transferPlayback(device_id, true); // play immediately
+        globalReady = true;
+        setIsReady(true);
       });
 
       playerInstance.addListener("not_ready", () => {
-        setDeviceId(null);
+        globalReady = false;
+        setIsReady(false);
       });
 
       playerInstance.addListener("authentication_error", async () => {
@@ -104,16 +144,15 @@ const useSpotifyPlayer = () => {
         if (!newToken) setSpotifyConnected(false);
       });
 
-      playerInstance.addListener("account_error", () => {
-        setSpotifyConnected(false);
-      });
+      playerInstance.addListener("account_error", () =>
+        setSpotifyConnected(false)
+      );
 
       playerInstance.addListener("player_state_changed", (state) => {
         if (!state) {
           setActive(false);
           return;
         }
-
         setPaused(state.paused);
         setActive(true);
       });
@@ -121,12 +160,15 @@ const useSpotifyPlayer = () => {
       await playerInstance.connect();
     };
 
-    return () => {
-      if (playerInstance) {
-        playerInstance.disconnect();
-      }
-      window.onSpotifyWebPlaybackSDKReady = null;
-    };
+    if (window.Spotify) {
+      sdkLoaded = true;
+      initializePlayer();
+    } else {
+      window.onSpotifyWebPlaybackSDKReady = () => {
+        sdkLoaded = true;
+        initializePlayer();
+      };
+    }
   }, [
     spotifyConnected,
     isAuthenticated,
@@ -136,71 +178,43 @@ const useSpotifyPlayer = () => {
     transferPlayback,
   ]);
 
-  useEffect(() => {
-    if (!player || !deviceId || !sessionTrack?.uri) return;
-
-    let cancelled = false;
-
-    const playTrack = async () => {
-      const token = await getToken();
-      if (!token || cancelled) return;
-
-      await fetch(
-        `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            uris: [sessionTrack.uri],
-          }),
-        }
-      );
-    };
-
-    playTrack();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [sessionTrack?.id, deviceId, player, getToken]);
-
-  useEffect(() => {
+  // --- Play/Pause/Next helpers ---
+  const play = async () => {
     if (!player || !deviceId) return;
+    try {
+      await player.togglePlay();
+    } catch (err) {
+      console.warn("Play error", err);
+    }
+  };
 
-    const syncPlayback = async () => {
-      const token = await getToken();
-      if (!token) return;
+  const pause = async () => {
+    if (!player || !deviceId) return;
+    try {
+      await player.pause();
+    } catch (err) {
+      console.warn("Pause error", err);
+    }
+  };
 
-      const endpoint = isPlaying ? "play" : "pause";
+  const nextTrack = async () => {
+    if (!player || !deviceId) return;
+    try {
+      await player.nextTrack();
+    } catch (err) {
+      console.warn("Next track error", err);
+    }
+  };
 
-      await fetch(
-        `https://api.spotify.com/v1/me/player/${endpoint}?device_id=${deviceId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-    };
-
-    syncPlayback();
-  }, [isPlaying, deviceId, player, getToken]);
-
+  // --- Track playback position ---
   useEffect(() => {
     if (!player) return;
-
     const interval = setInterval(async () => {
       const state = await player.getCurrentState();
       if (state?.duration) {
         setPosition((state.position / state.duration) * 100);
-      } else {
-        setPosition(0);
-      }
-    }, 1000);
+      } else setPosition(0);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [player]);
@@ -211,6 +225,11 @@ const useSpotifyPlayer = () => {
     is_active,
     position,
     deviceId,
+    isReady,
+    play,
+    pause,
+    nextTrack,
+    transferPlayback,
   };
 };
 

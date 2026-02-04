@@ -20,6 +20,7 @@ export const useSessionSocket = (
 
   const handlersRef = useRef(eventHandlers);
   const socketRef = useRef(null);
+  const initializedSession = useRef(null);
   const hasLoggedWaiting = useRef(false);
 
   useEffect(() => {
@@ -29,7 +30,6 @@ export const useSessionSocket = (
   useEffect(() => {
     const actualGuest = guest || !isAuthenticated;
 
-    // Only log "waiting" once to avoid spam
     if (!actualGuest && !socketToken) {
       if (!hasLoggedWaiting.current) {
         console.log("⏸️ [Socket] Waiting for authentication...");
@@ -38,17 +38,14 @@ export const useSessionSocket = (
       return;
     }
 
-    // Don't even try to connect without a session code - just return silently
-    if (!sessionCode) {
-      return;
-    }
+    if (!sessionCode) return;
 
-    // Reset the waiting flag when we have auth
+    if (initializedSession.current === sessionCode) return;
+
     hasLoggedWaiting.current = false;
 
     let socketInstance = null;
     let cancelled = false;
-    const registeredHandlers = [];
 
     const initSocket = async () => {
       try {
@@ -56,6 +53,7 @@ export const useSessionSocket = (
           `[Socket] Initializing connection for session: ${sessionCode}`
         );
         setJoining(true);
+
         socketInstance = await getSocket("/session", { guest: actualGuest });
         socketRef.current = socketInstance;
 
@@ -65,57 +63,39 @@ export const useSessionSocket = (
           console.log("[Socket] Connected");
           setConnected(true);
         };
-
         const onDisconnect = () => {
           console.log("[Socket] Disconnected");
           setConnected(false);
         };
-
         socketInstance.on("connect", onConnect);
         socketInstance.on("disconnect", onDisconnect);
-        registeredHandlers.push(["connect", onConnect]);
-        registeredHandlers.push(["disconnect", onDisconnect]);
 
         const onUserJoined = (data) => {
           console.log("User joined:", data);
           handleUserJoined(data);
-          if (window.showToast) {
-            window.showToast(`${data.name} joined`, "join");
-          }
+          if (window.showToast) window.showToast(`${data.name} joined`, "join");
         };
-
         const onUserLeft = (data) => {
           console.log("User left:", data);
           handleUserLeft(data);
-          if (window.showToast) {
-            window.showToast(`${data.name} left`, "leave");
-          }
+          if (window.showToast) window.showToast(`${data.name} left`, "leave");
         };
 
-        const eventMap = {
-          user_joined: onUserJoined,
-          user_left: onUserLeft,
-        };
-
-        Object.entries(eventMap).forEach(([event, handler]) => {
-          socketInstance.on(event, handler);
-          registeredHandlers.push([event, handler]);
-        });
+        socketInstance.on("user_joined", onUserJoined);
+        socketInstance.on("user_left", onUserLeft);
 
         Object.entries(handlersRef.current).forEach(([event, handler]) => {
           socketInstance.on(event, handler);
-          registeredHandlers.push([event, handler]);
         });
 
         console.log(`[Session] Joining session: ${sessionCode}`);
         socketInstance.emit("join_session", sessionCode, (res) => {
           setJoining(false);
-
           if (res?.success) {
             console.log(`[Session] Successfully joined: ${sessionCode}`);
             setJoinError(null);
+            initializedSession.current = sessionCode;
 
-            // Request initial session data
             socketInstance.emit(
               "get_session_data",
               { sessionCode },
@@ -144,21 +124,15 @@ export const useSessionSocket = (
 
     return () => {
       cancelled = true;
-      if (socketInstance) {
+      if (socketRef.current) {
         console.log(`[Session] Cleaning up: ${sessionCode}`);
-
-        socketInstance.emit("leave_session", sessionCode, (res) => {
-          if (res?.success) {
-            console.log(`[Session] Left: ${sessionCode}`);
-          }
+        socketRef.current.emit("leave_session", sessionCode, (res) => {
+          if (res?.success) console.log(`[Session] Left: ${sessionCode}`);
         });
-
-        registeredHandlers.forEach(([event, handler]) => {
-          socketInstance.off(event, handler);
-        });
-
+        socketRef.current.removeAllListeners();
         socketRef.current = null;
         setConnected(false);
+        initializedSession.current = null;
       }
     };
   }, [
@@ -182,7 +156,6 @@ export const useQueueActions = () => {
   const sessionCode = useLiveSessionStore((state) => state.sessionCode);
   const socketRef = useRef(null);
 
-  // Get socket instance
   useEffect(() => {
     const getSocketInstance = async () => {
       try {
@@ -218,7 +191,5 @@ export const useQueueActions = () => {
     });
   };
 
-  return {
-    refreshSessionData,
-  };
+  return { refreshSessionData };
 };
