@@ -3,7 +3,8 @@ import sessionService from "../services/session.service.js";
 import logger from "../../utils/logger.js";
 import { createUniqueUsername } from "../../utils/createUniqueUsername.js";
 import crypto from "crypto";
-import { handleGetSessionData } from "../../socket/handlers/queue.handler.js";
+import { handleGetSessionData, handleMoveSongToQueue } from "../../socket/handlers/queue.handler.js";
+import { Namespace } from "socket.io";
 
 const emitToDashboard = (io, event, data) => {
   try {
@@ -82,6 +83,7 @@ const registerSessionNamespace = (io) => {
 
         callback?.({ success: true, session });
         logger.info(`User ${userId} joined session ${sessionCode}`);
+        logger.info(`Socket id: ${socket.id}`);
       } catch (err) {
         logger.error(`Join session error for user ${userId}: ${err.message}`);
         callback?.({ success: false, message: err.message });
@@ -185,6 +187,26 @@ const registerSessionNamespace = (io) => {
       } catch (err) {
         logger.error(`Disconnect error for user ${userId}: ${err.message}`);
       }
+    });
+
+    socket.on("move_song_to_queue", async (data, callback) => {
+      try {
+        await handleMoveSongToQueue(
+          sessionNamespace,
+          data.trackDetails,
+          data.sessionCode,
+          data.user,
+          callback
+        );
+      } catch (err) {
+        if (callback && typeof callback === "function") {
+          callback({ success: false, message: err.message });
+        }
+      }
+    });
+
+    socket.on("error", (err) => {
+      logger.error(`Socket error for user ${userId}: ${err.message}`);
     });
   });
 

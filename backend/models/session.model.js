@@ -37,7 +37,7 @@ const sessionSchema = new Schema(
   { timestamps: true }
 );
 
-sessionSchema.index({ host_id: 1, createdAt: -1 });
+sessionSchema.index({ host_id: 2, session_code: 1, createdAt: -1 });
 
 const Session = mongoose.model("Session", sessionSchema);
 export default Session;

@@ -194,9 +194,7 @@ export const handleDisconnect = async (
       participantCount,
     });
 
-    logger.info(
-      `User ${userId} removed from session ${roomId}. ${participantCount} participants remaining.`
-    );
+    logger.info(`User ${userId} removed from session ${roomId}. ${participantCount} participants remaining.`);
   } catch (err) {
     logger.error(`Error in handleDisconnect: ${err.message}`);
   }

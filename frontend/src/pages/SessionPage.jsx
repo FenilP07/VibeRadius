@@ -238,6 +238,7 @@ export default function SessionPage() {
 
   const displayTrack = currentTrack;
   const displayQueue = queue.length ? queue : [];
+  console.log(`Queue:`, queue);
 
   return (
     <div className="min-h-screen bg-surface-bg text-text-primary relative overflow-x-hidden">
@@ -263,8 +264,13 @@ export default function SessionPage() {
         participants={participants}
       />
 
-      {/* Queue Modal */}
-      <QueueModal isOpen={isQueueOpen} onClose={() => setIsQueueOpen(false)} />
+      {isQueueOpen && (
+        <QueueModal
+          isOpen={isQueueOpen}
+          onClose={() => setIsQueueOpen(false)}
+        // queue={displayQueue}
+        />
+      )}
 
       <main className="max-w-7xl mx-auto p-6 lg:p-10 pt-24 lg:pt-32">
         {/* --- HEADER --- */}
@@ -458,72 +464,61 @@ export default function SessionPage() {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto">
-                {displayQueue.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-text-muted">
-                    <FaMusic size={48} className="mb-4 opacity-20" />
-                    <p className="font-bold">No songs in queue</p>
-                    <p className="text-sm mt-1">Add songs to get started!</p>
-                  </div>
-                ) : (
-                  displayQueue.slice(0, 5).map((song, i) => (
-                    <div
-                      key={song.id || i}
-                      className="flex items-center gap-6 p-6 hover:bg-surface-alt/40 border-b border-primary-subtle last:border-0 group transition-all"
-                    >
-                      <div className="flex flex-col items-center min-w-[50px] bg-surface-bg py-2 rounded-2xl border border-primary-subtle/30 group-hover:border-primary/20">
-                        <button className="text-text-muted hover:text-success transition-all hover:scale-125">
-                          <FaChevronUp size={16} />
-                        </button>
-                        <span className="font-black text-lg text-text-primary my-1 tracking-tighter">
-                          {song.votes || 0}
-                        </span>
-                        <button className="text-text-muted hover:text-error transition-all hover:scale-125">
-                          <FaChevronDown size={16} />
-                        </button>
-                      </div>
-
-                      <div className="w-16 h-16 bg-primary-subtle text-primary rounded-[1.5rem] flex items-center justify-center shadow-inner group-hover:bg-primary group-hover:text-white transition-all duration-500">
-                        {song.album?.images?.[0] ? (
-                          <img
-                            src={song.album.images[0].url}
-                            alt={song.album.name}
-                            className="w-full h-full object-cover rounded-[1.5rem]"
-                          />
-                        ) : (
-                          <FaMusic size={24} />
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-text-primary text-xl truncate tracking-tight group-hover:translate-x-1 transition-transform">
-                          {song.title || song.name}
-                        </h4>
-                        <p className="text-sm text-text-secondary font-medium italic truncate">
-                          {song.artist || song.artists?.[0]?.name}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <button
-                          onClick={() => addToast("Song Prioritized", "join")}
-                          className="p-3 bg-surface-bg border border-primary-subtle rounded-xl text-text-muted hover:text-primary hover:border-primary opacity-0 group-hover:opacity-100 transition-all shadow-sm"
-                        >
-                          <FaForward size={14} />
-                        </button>
-                        <button
-                          onClick={() => {
-                            addToast("Song Removed from Queue", "leave");
-                            removeTrackFromQueue(song.id);
-                          }}
-                          className="p-3 bg-surface-bg border border-primary-subtle rounded-xl text-text-muted hover:text-error hover:border-error opacity-0 group-hover:opacity-100 transition-all shadow-sm"
-                        >
-                          <FaTrashAlt size={14} />
-                        </button>
-                      </div>
+              <div className="flex-1">
+                {displayQueue.slice(0, 5).map((song, i) => (
+                  <div
+                    key={song.id || i}
+                    className="flex items-center gap-6 p-6 hover:bg-surface-alt/40 border-b border-primary-subtle last:border-0 group transition-all"
+                  >
+                    <div className="flex flex-col items-center min-w-[50px] bg-surface-bg py-2 rounded-2xl border border-primary-subtle/30 group-hover:border-primary/20">
+                      <button className="text-text-muted hover:text-success transition-all hover:scale-125">
+                        <FaChevronUp size={16} />
+                      </button>
+                      <span className="font-black text-lg text-text-primary my-1 tracking-tighter">
+                        {song.votes || 0}
+                      </span>
+                      <button className="text-text-muted hover:text-error transition-all hover:scale-125">
+                        <FaChevronDown size={16} />
+                      </button>
                     </div>
-                  ))
-                )}
+
+                    <div className="w-16 h-16 bg-primary-subtle text-primary rounded-[1.5rem] flex items-center justify-center shadow-inner group-hover:bg-primary group-hover:text-white transition-all duration-500">
+                      {song.albumImage ? (
+                        <img
+                          src={song.albumImage}
+                          alt={song.title}
+                          className="w-full h-full object-cover rounded-[1.5rem]"
+                        />
+                      ) : (
+                        <FaMusic size={24} />
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-text-primary text-xl truncate tracking-tight group-hover:translate-x-1 transition-transform">
+                        {song.title || song.name}
+                      </h4>
+                      <p className="text-sm text-text-secondary font-medium italic truncate">
+                        {song.artists.map((a) => a.name).join(", ")}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => addToast("Song Prioritized", "join")}
+                        className="p-3 bg-surface-bg border border-primary-subtle rounded-xl text-text-muted hover:text-primary hover:border-primary opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                      >
+                        <FaForward size={14} />
+                      </button>
+                      <button
+                        onClick={() => { addToast("Song Removed from Queue", "leave"); removeTrackFromQueue(song.id); }}
+                        className="p-3 bg-surface-bg border border-primary-subtle rounded-xl text-text-muted hover:text-error hover:border-error opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                      >
+                        <FaTrashAlt size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div className="p-8 bg-surface-alt/30 text-center border-t border-primary-subtle">

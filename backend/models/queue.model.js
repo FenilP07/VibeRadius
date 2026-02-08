@@ -17,7 +17,7 @@ const queueSchema = new Schema(
       required: true,
     },
     artists: {
-      type: [String],
+      type: [Object],
       required: true,
     },
     track_image: {
@@ -29,7 +29,6 @@ const queueSchema = new Schema(
     },
     added_by_name: {
       type: String,
-      required: true,
     },
     total_votes: {
       type: Number,
