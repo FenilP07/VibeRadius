@@ -18,6 +18,10 @@ const io = new Server(server, {
     ],
     credentials: true,
   },
+  connectionStateRecovery: {
+    maxDisconnectionDuration: 2 * 60, // 2 minutes
+    skipMiddlewares: true,
+  },
 });
 
 app.set("io", io);

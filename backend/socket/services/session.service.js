@@ -52,6 +52,14 @@ class SessionService {
     }
   }
 
+  getSessionById(sessionId) {
+    return Session.findById(sessionId);
+  }
+
+  getSessionByCode(sessionCode) {
+    return Session.findOne({ session_code: sessionCode });
+  }
+
   getRoomId(session) {
     return session?._id?.toString();
   }
