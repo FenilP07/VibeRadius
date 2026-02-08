@@ -7,7 +7,8 @@ import {
 import logger from "../../utils/logger.js";
 import { createUniqueUsername } from "../../utils/createUniqueUsername.js";
 import crypto from "crypto";
-import { handleGetSessionData } from "../../socket/handlers/queue.handler.js";
+import { handleGetSessionData, handleMoveSongToQueue } from "../../socket/handlers/queue.handler.js";
+import { Namespace } from "socket.io";
 
 const registerSessionNamespace = (io) => {
   const sessionNamespace = io.of("/session");
@@ -53,6 +54,8 @@ const registerSessionNamespace = (io) => {
           sessionCode,
           callback
         );
+
+        logger.info(`Socket id: ${socket.id}`);
       } catch (err) {
         logger.error(`Join session error for user ${userId}: ${err.message}`);
         if (callback && typeof callback === "function") {
@@ -133,6 +136,26 @@ const registerSessionNamespace = (io) => {
           logger.error(`Disconnect error for user ${userId}: ${err.message}`);
         }
       }
+    });
+
+    socket.on("move_song_to_queue", async (data, callback) => {
+      try {
+        await handleMoveSongToQueue(
+          sessionNamespace,
+          data.trackDetails,
+          data.sessionCode,
+          data.user,
+          callback
+        );
+      } catch (err) {
+        if (callback && typeof callback === "function") {
+          callback({ success: false, message: err.message });
+        }
+      }
+    });
+
+    socket.on("error", (err) => {
+      logger.error(`Socket error for user ${userId}: ${err.message}`);
     });
   });
 };

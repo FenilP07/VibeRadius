@@ -179,20 +179,48 @@ export const useSessionSocket = (
 };
 
 export const useQueueActions = () => {
-  const sessionCode = useLiveSessionStore((state) => state.sessionCode);
+  const {
+    sessionCode,
+    currentUser,
+    setAddToQueueTrack,
+    setQueue
+  } = useLiveSessionStore();
   const socketRef = useRef(null);
+
+    const addToQueueTrack = useLiveSessionStore((state) => state.addToQueueTrack);
 
   // Get socket instance
   useEffect(() => {
     const getSocketInstance = async () => {
       try {
-        socketRef.current = await getSocket("/session");
+        const socketInstance = await getSocket("/session");
+
+        if (!socketInstance) {
+          console.warn("No socket instance available for queue actions");
+          return { success: false, message: "No socket connection" };
+        }
+
+        const bindObject = {
+          trackDetails: addToQueueTrack,
+          sessionCode,
+          user: currentUser,
+        }
+
+        socketInstance.emit("move_song_to_queue", bindObject, (data) => {
+          if (data?.success) {
+            console.log("Track added to queue successfully:", data);
+            setQueue(data.queue);
+            setAddToQueueTrack(null);
+          } else {
+            return { success: false, message: data?.message || "Failed to add to queue" };
+          }
+        })
       } catch (err) {
-        console.error("Failed to get socket for actions:", err);
-      }
+        return { success: false, message: err.message };
+      };
     };
     getSocketInstance();
-  }, []);
+  }, [addToQueueTrack]);
 
   const refreshSessionData = () => {
     if (!socketRef.current?.connected || !sessionCode) {

@@ -3,7 +3,7 @@ import Session from "../../models/session.model.js";
 
 class QueueService {
   async getSessionQueue(sessionId) {
-    const queueItems = await QueueService.find({
+    const queueItems = await Queue.find({
       session_id: sessionId,
       status: "queued",
     }).sort({ total_votes: -1, added_at: 1 });
@@ -67,6 +67,25 @@ class QueueService {
       return { success: true, data };
     } catch (err) {
       logger.error(`Error in getSessionData: ${err.message}`);
+      return { success: false, message: err.message };
+    }
+  }
+
+  async handleMoveSongToQueue(trackDetails, userName, sessionId) {
+    try {
+      const newQueueItem = new Queue({
+        session_id: sessionId,
+        track_id: trackDetails.id,
+        title: trackDetails.name,
+        artists: trackDetails.artists,
+        track_image: trackDetails.album?.images[0]?.url,
+        added_by: userName,
+        total_votes: 5, // Will change when voting is implemented
+        status: "queued"
+      })
+      await newQueueItem.save();
+      return { success: true, data: newQueueItem };
+    } catch (err) {
       return { success: false, message: err.message };
     }
   }

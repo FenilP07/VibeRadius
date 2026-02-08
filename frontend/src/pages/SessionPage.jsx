@@ -219,6 +219,8 @@ export default function SessionPage() {
     }
   };
 
+  console.log(`Queue:`, queue);
+
   return (
     <div className="min-h-screen bg-surface-bg text-text-primary relative overflow-x-hidden">
       <NavbarAdmin />
@@ -243,11 +245,13 @@ export default function SessionPage() {
         participants={participants}
       />
 
-      <QueueModal
-        isOpen={isQueueOpen}
-        onClose={() => setIsQueueOpen(false)}
-      // queue={displayQueue}
-      />
+      {isQueueOpen && (
+        <QueueModal
+          isOpen={isQueueOpen}
+          onClose={() => setIsQueueOpen(false)}
+        // queue={displayQueue}
+        />
+      )}
 
       <main className="max-w-7xl mx-auto p-6 lg:p-10 pt-24 lg:pt-32">
         {/* DASHBOARD HEADER */}
@@ -458,10 +462,10 @@ export default function SessionPage() {
                     </div>
 
                     <div className="w-16 h-16 bg-primary-subtle text-primary rounded-[1.5rem] flex items-center justify-center shadow-inner group-hover:bg-primary group-hover:text-white transition-all duration-500">
-                      {song.album?.images?.[0] ? (
+                      {song.albumImage ? (
                         <img
-                          src={song.album.images[0].url}
-                          alt={song.album.name}
+                          src={song.albumImage}
+                          alt={song.title}
                           className="w-full h-full object-cover rounded-[1.5rem]"
                         />
                       ) : (
@@ -474,7 +478,7 @@ export default function SessionPage() {
                         {song.title || song.name}
                       </h4>
                       <p className="text-sm text-text-secondary font-medium italic truncate">
-                        {song.artist || song.artists?.[0]?.name}
+                        {song.artists.map((a) => a.name).join(", ")}
                       </p>
                     </div>
 

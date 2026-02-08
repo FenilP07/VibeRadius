@@ -77,7 +77,7 @@ export const handleJoinSession = async (
         session,
       });
     }
-    
+
     logger.info(`=== JOIN SESSION SUCCESS ===`);
   } catch (err) {
     logger.error(`Error in handleJoinSession: ${err.message}`);
@@ -104,7 +104,7 @@ export const handleLeaveSession = async (
       { session_code: sessionCode },
       userId
     );
-    
+
     if (!session) {
       if (callback && typeof callback === 'function') {
         callback({ success: false, message: "Session not found" });
@@ -142,7 +142,7 @@ export const handleLeaveSession = async (
 export const handleDisconnect = async (sessionNamespace, userId, sessionId, sessionCode) => {
   try {
     let session = null;
-    
+
     if (sessionCode) {
       logger.info(`Removing user ${userId} from session ${sessionCode}`);
       session = await sessionService.removeUserFromSession(
@@ -171,7 +171,7 @@ export const handleDisconnect = async (sessionNamespace, userId, sessionId, sess
       userId,
       participantCount,
     });
-    
+
     logger.info(`User ${userId} removed from session ${roomId}. ${participantCount} participants remaining.`);
   } catch (err) {
     logger.error(`Error in handleDisconnect: ${err.message}`);

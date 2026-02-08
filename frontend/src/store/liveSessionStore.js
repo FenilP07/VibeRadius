@@ -12,10 +12,12 @@ const useLiveSessionStore = create((set, get) => ({
 
   isHost: false,
   hostId: null,
+  currentUser: null,
 
   sessionStatus: "idle",
 
   currentTrack: null,
+  addToQueueTrack: null,
   queue: [],
   isPlaying: false,
 
@@ -69,6 +71,11 @@ const useLiveSessionStore = create((set, get) => ({
     const { userId, name, participantCount } = data;
 
     set((state) => {
+      const user = get().currentUser;
+      if (!user || user.id === userId) {
+        set({ currentUser: { id: userId, name } });
+      }
+
       const newParticipants = state.participants.some((p) => p.id === userId)
         ? state.participants
         : [...state.participants, { id: userId, name }];
@@ -110,9 +117,11 @@ const useLiveSessionStore = create((set, get) => ({
 
   setCurrentTrack: (track) => set({ currentTrack: track }),
 
+  setAddToQueueTrack: (track) => { set({ addToQueueTrack: track }); },
+
   setQueue: (queue) =>
     set({
-      queue: [...get().queue, queue],
+      queue,
       upNext: queue[0] || null,
       stats: {
         ...get().stats,
@@ -121,20 +130,20 @@ const useLiveSessionStore = create((set, get) => ({
       },
     }),
 
-    /* Remove track from queue */
-    removeTrackFromQueue: (trackId) =>
-      set((state) => {
-        const newQueue = state.queue.filter((track) => track.id !== trackId);
-        return {
-          queue: newQueue,
-          upNext: newQueue[0] || null,
-          stats: {
-            ...state.stats,
-            inQueue: newQueue.length,
-            estimatedWait: newQueue.length * 3,
-          },
-        };
-      }),
+  /* Remove track from queue */
+  removeTrackFromQueue: (trackId) =>
+    set((state) => {
+      const newQueue = state.queue.filter((track) => track.id !== trackId);
+      return {
+        queue: newQueue,
+        upNext: newQueue[0] || null,
+        stats: {
+          ...state.stats,
+          inQueue: newQueue.length,
+          estimatedWait: newQueue.length * 3,
+        },
+      };
+    }),
 
   updateSessionStatus: (status) => set({ sessionStatus: status }),
 
@@ -151,6 +160,7 @@ const useLiveSessionStore = create((set, get) => ({
       participantCount: 0,
       isHost: false,
       hostId: null,
+      currentUser: null,
       sessionStatus: "idle",
       currentTrack: null,
       queue: [],

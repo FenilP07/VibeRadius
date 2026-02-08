@@ -37,12 +37,11 @@ const QueueModal = ({ isOpen, onClose }) => {
     };
 
     /* Add Track to Queue */
-    const { setQueue } = useLiveSessionStore();
+    const { setAddToQueueTrack } = useLiveSessionStore();
 
-    /* Store accepts an object which looks for queue; here we'll set it */
     const addToQueue = async (track) => {
         try {
-            await setQueue(track);
+            await setAddToQueueTrack(track);
         } catch (err) {
             setError("Failed to add track to queue. Please try again.");
             console.error("Error adding track to queue:", err);
