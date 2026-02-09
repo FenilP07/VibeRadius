@@ -52,10 +52,12 @@ const useSessionStore = create((set, get) => ({
 
         socket.emit("subscribe_dashboard", (response) => {
           if (response?.success) {
+            set({ activeSessions: response.data });
             console.log("[Dashboard] Successfully subscribed", response.data);
           }
         });
       };
+
       const onDisconnect = (reason) => {
         console.log("[Dashboard] WebSocket disconnected:", reason);
         set({ isWebSocketConnected: false });
@@ -65,13 +67,13 @@ const useSessionStore = create((set, get) => ({
         console.log("[Dashboard] User joined:", data);
         const { sessionCode, participantCount } = data;
 
-        set((state) => {
-          activeSessions: state.activeSessions.map((session) => {
+        set((state) => ({
+          activeSessions: state.activeSessions.map((session) =>
             session.code === sessionCode
               ? { ...session, listeners: participantCount }
-              : session;
-          });
-        });
+              : session
+          ),
+        }));
       };
 
       const onUserLeft = (data) => {
@@ -87,14 +89,25 @@ const useSessionStore = create((set, get) => ({
         }));
       };
 
+      const onSessionUpdated = ({ sessionCode, songs }) => {
+        set((state) => ({
+          activeSessions: state.activeSessions.map((session) =>
+            session.code === session.code ? { ...session, songs } : session
+          ),
+        }));
+      };
+
       socket.on("connect", onConnect);
       socket.on("disconnect", onDisconnect);
-      socket.on("user_joined", onUserJoined);
-      socket.on("user_left", onUserLeft);
+      socket.on("user_joined_session", onUserJoined);
+      socket.on("user_left_session", onUserLeft);
+      socket.on("dashboard_session_updated", onSessionUpdated);
 
       if (socket.connected) {
         socket.emit("subscribe_dashboard", (response) => {
           if (response?.success) {
+            set({ activeSessions: response.data });
+
             console.log("[Dashboard] Successfully subscribed", response.data);
           }
         });
@@ -125,8 +138,9 @@ const useSessionStore = create((set, get) => ({
     }
     dashboardSocket.off("connect");
     dashboardSocket.off("disconnect");
-    dashboardSocket.off("user_joined");
-    dashboardSocket.off("user_left");
+    dashboardSocket.off("user_joined_session");
+    dashboardSocket.off("user_left_session");
+    dashboardSocket.off("dashboard_session_updated");
 
     disconnectSocket("/dashboard");
 

@@ -34,14 +34,8 @@ class QueueService {
 
       // Fetch session and populate current track details
       const session = await Session.findOne({
-        session_code: sessionCode,
+        session_code: sessionCode.toUpperCase(),
       }).populate("current_track_id");
-
-      if(!session) {
-        return { success: false, message: "Session not found." };
-      }
-
-      // Fetch queue items for the session
       const queue = await this.getSessionQueue(session._id);
 
       // If there's a current track, format its details for the response

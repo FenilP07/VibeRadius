@@ -3,8 +3,12 @@ import sessionService from "../services/session.service.js";
 import logger from "../../utils/logger.js";
 import { createUniqueUsername } from "../../utils/createUniqueUsername.js";
 import crypto from "crypto";
-import { handleGetSessionData, handleMoveSongToQueue } from "../../socket/handlers/queue.handler.js";
+import {
+  handleGetSessionData,
+  handleMoveSongToQueue,
+} from "../../socket/handlers/queue.handler.js";
 import { Namespace } from "socket.io";
+import queueService from "../services/queue.service.js";
 
 const emitToDashboard = (io, event, data) => {
   try {
@@ -65,6 +69,8 @@ const registerSessionNamespace = (io) => {
         const participantCount = sessionService.getParticipantCount(session);
 
         socket.join(roomId);
+        const queue = await queueService.getSessionQueue(session._id);
+        sessionNamespace.to(roomId).emit("queue_updated", { queue });
         socket.currentSessionId = roomId;
         socket.currentSessionCode = sessionCode;
 

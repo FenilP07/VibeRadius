@@ -33,7 +33,7 @@ const queueSchema = new Schema(
     total_votes: {
       type: Number,
       default: 0,
-      index: true,
+      index: -1,
     },
     status: {
       type: String,
@@ -48,6 +48,7 @@ const queueSchema = new Schema(
 );
 
 queueSchema.index({ session_id: 1, track_id: 1 }, { unique: true });
+queueSchema.index({ session_id: 1, status: 1, total_votes: -1 });
 
 const Queue = mongoose.model("Queue", queueSchema);
 export default Queue;

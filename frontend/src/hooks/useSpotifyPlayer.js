@@ -64,12 +64,14 @@ const useSpotifyPlayer = () => {
           }
         );
         const devicesData = await devicesRes.json();
-        const availableDevice =
-          devicesData.devices.find((d) => d.id === device_id) ||
-          devicesData.devices[0];
+        const availableDevice = devicesData.devices.find(
+          (d) => d.id === device_id
+        );
 
         if (!availableDevice) {
-          console.warn("No active Spotify devices found");
+          console.warn(
+            "VibeRadius device not available yet (not in /devices list)"
+          );
           return;
         } 
 
@@ -131,7 +133,7 @@ const useSpotifyPlayer = () => {
         setPlayer(playerInstance);
         setDeviceId(device_id);
 
-        await transferPlayback(device_id);
+        await transferPlayback(device_id, false);
         globalReady = true;
         setIsReady(true);
       });
@@ -184,6 +186,29 @@ const useSpotifyPlayer = () => {
     transferPlayback,
   ]);
 
+  const playTrack = useCallback(
+    async (uri, { position_ms = 0 } = {}) => {
+      const token = await getToken();
+      if (!token || !deviceId || !uri) return;
+
+      await fetch(
+        `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            uris: [uri],
+            position_ms,
+          }),
+        }
+      );
+    },
+    [getToken, deviceId]
+  );
+
   // --- Play/Pause/Next helpers ---
 
   const play = async () => {
@@ -235,6 +260,7 @@ const useSpotifyPlayer = () => {
     position,
     deviceId,
     isReady,
+    playTrack,
     play,
     pause,
     nextTrack,
