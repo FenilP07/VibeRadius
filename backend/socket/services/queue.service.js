@@ -87,7 +87,7 @@ class QueueService {
     }
   }
 
-  async handleMoveSongToQueue(trackDetails, userName, sessionId) {
+  async handleMoveSongToQueue(trackDetails, user, sessionId) {
     try {
       const newQueueItem = new Queue({
         session_id: sessionId,
@@ -95,7 +95,8 @@ class QueueService {
         title: trackDetails.name,
         artists: trackDetails.artists,
         track_image: trackDetails.album?.images[0]?.url,
-        added_by: userName,
+        added_by_id: user.id,
+        added_by_name: user.name,
         total_votes: 5, // Will change when voting is implemented
         status: "queued"
       })

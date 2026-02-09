@@ -76,7 +76,7 @@ const handleMoveSongToQueue = async (sessionNamespace, trackDetails, sessionCode
     }
 
     // Add track to Queue
-    const queueResult = await QueueService.handleMoveSongToQueue(trackDetails, user.name, session._id);
+    const queueResult = await QueueService.handleMoveSongToQueue(trackDetails, user, session._id);
     if (!queueResult.success) {
       logger.error(`Failed to move song to queue for session ${sessionCode}: ${queueResult.message}`);
       if (callback && typeof callback === "function") {
