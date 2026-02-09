@@ -17,6 +17,7 @@ import {
   FaRocket,
   FaForward,
   FaUnlock,
+  FaPause,
 } from "react-icons/fa";
 
 import { NavbarAdmin } from "../components/admin/NavbarAdmin";
@@ -392,7 +393,7 @@ export default function SessionPage() {
                         : "bg-white/20 text-white/40 cursor-not-allowed"
                     }`}
                   >
-                    <FaPlay className="ml-1" size={20} />
+                    {is_paused ? <FaPlay className="ml-1" size={20} /> : <FaPause className="ml-1" size={20} />}
                   </button>
                   <button
                     disabled={!isReady}
