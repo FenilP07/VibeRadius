@@ -4,7 +4,6 @@ import { FaListUl, FaTimes, FaSearch, FaChevronUp, FaChevronDown, FaMusic, FaTra
 import useLiveSessionStore from "../store/liveSessionStore.js";
 
 const QueueModal = ({ isOpen, onClose }) => {
-    if (!isOpen) return null;
 
     /* Spotify Track Search */
     const [query, setQuery] = useState("");
@@ -12,6 +11,10 @@ const QueueModal = ({ isOpen, onClose }) => {
     const [loading, setLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
     const [error, setError] = useState("");
+    const { setAddToQueueTrack } = useLiveSessionStore();
+
+    if (!isOpen) return null;
+
 
     const searchTracks = async () => {
         if (!query.trim()) return;
@@ -37,11 +40,10 @@ const QueueModal = ({ isOpen, onClose }) => {
     };
 
     /* Add Track to Queue */
-    const { setAddToQueueTrack } = useLiveSessionStore();
-
-    const addToQueue = async (track) => {
+    const addToQueue = (track) => {
         try {
-            await setAddToQueueTrack(track);
+            setAddToQueueTrack(track);
+            onClose();
         } catch (err) {
             setError("Failed to add track to queue. Please try again.");
             console.error("Error adding track to queue:", err);

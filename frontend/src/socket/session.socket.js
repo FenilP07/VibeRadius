@@ -71,7 +71,6 @@ export const useSessionSocket = (
         socketInstance.on("disconnect", onDisconnect);
 
         const onUserJoined = (data) => {
-          console.log("User joined:", data);
           handleUserJoined(data);
           if (window.showToast) window.showToast(`${data.name} joined`, "join");
         };
@@ -88,20 +87,16 @@ export const useSessionSocket = (
           socketInstance.on(event, handler);
         });
 
-        console.log(`[Session] Joining session: ${sessionCode}`);
         socketInstance.emit("join_session", sessionCode, (res) => {
           setJoining(false);
           if (res?.success) {
-            console.log(`[Session] Successfully joined: ${sessionCode}`);
             setJoinError(null);
             initializedSession.current = sessionCode;
 
             socketInstance.emit(
-              "get_session_data",
-              { sessionCode },
+              "get_session_data", sessionCode,
               (dataRes) => {
                 if (dataRes?.success) {
-                  console.log("Initial session data received:", dataRes.data);
                   setSessionData(dataRes.data);
                 } else {
                   console.warn("Failed to get session data:", dataRes?.message);
@@ -168,6 +163,7 @@ export const useQueueActions = () => {
     const getSocketInstance = async () => {
       try {
         const socketInstance = await getSocket("/session");
+        socketRef.current = socketInstance;
 
         if (!socketInstance) {
           console.warn("No socket instance available for queue actions");
@@ -182,7 +178,6 @@ export const useQueueActions = () => {
 
         socketInstance.emit("move_song_to_queue", bindObject, (data) => {
           if (data?.success) {
-            console.log("Track added to queue successfully:", data);
             setQueue(data.queue);
             setAddToQueueTrack(null);
           } else {
@@ -205,7 +200,7 @@ export const useQueueActions = () => {
     return new Promise((resolve, reject) => {
       socketRef.current.emit(
         "get_session_data",
-        { sessionCode },
+        sessionCode,
         (response) => {
           if (response?.success) {
             console.log("Session data refreshed");

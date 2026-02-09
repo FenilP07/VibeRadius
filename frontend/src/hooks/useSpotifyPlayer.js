@@ -32,6 +32,7 @@ const useSpotifyPlayer = () => {
   const setSpotifyConnected = useAuthStore(
     (state) => state.setSpotifyConnected
   );
+  const { setCurrentTrack } = useLiveSessionStore();
 
   const tokenRef = useRef(null);
 
@@ -50,12 +51,12 @@ const useSpotifyPlayer = () => {
 
   // --- Transfer playback to this device safely ---
   const transferPlayback = useCallback(
-    async (device_id, play = false) => {
+    async (device_id) => {
       const token = await getToken();
       if (!token) return;
 
       try {
-        // Get available devices
+         // Get available devices
         const devicesRes = await fetch(
           "https://api.spotify.com/v1/me/player/devices",
           {
@@ -72,8 +73,9 @@ const useSpotifyPlayer = () => {
             "VibeRadius device not available yet (not in /devices list)"
           );
           return;
-        }
+        } 
 
+        console.log("Device id for transfer:", device_id);
         // Transfer playback
         await fetch("https://api.spotify.com/v1/me/player", {
           method: "PUT",
@@ -81,7 +83,7 @@ const useSpotifyPlayer = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ device_ids: [availableDevice.id], play }),
+          body: JSON.stringify({ device_ids: [device_id], play: false }),
         });
         console.log("✅ Playback transferred to device:", availableDevice.name);
       } catch (err) {
@@ -155,8 +157,12 @@ const useSpotifyPlayer = () => {
           setActive(false);
           return;
         }
+        setCurrentTrack(state.track_window.current_track);
         setPaused(state.paused);
-        setActive(true);
+
+        playerInstance.getCurrentState().then(currentState => {
+          (!currentState) ? setActive(false) : setActive(true);
+        });
       });
 
       await playerInstance.connect();
@@ -204,10 +210,12 @@ const useSpotifyPlayer = () => {
   );
 
   // --- Play/Pause/Next helpers ---
+
   const play = async () => {
-    if (!player || !deviceId) return;
+    if (!player || !deviceId || is_paused === false) return;
     try {
-      await player.togglePlay();
+      console.log("Attempting to play...");
+      await player.resume();
     } catch (err) {
       console.warn("Play error", err);
     }
@@ -216,6 +224,7 @@ const useSpotifyPlayer = () => {
   const pause = async () => {
     if (!player || !deviceId) return;
     try {
+      console.log("Attempting to pause...");
       await player.pause();
     } catch (err) {
       console.warn("Pause error", err);

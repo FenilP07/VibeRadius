@@ -1,5 +1,7 @@
 import Queue from "../../models/queue.model.js";
 import Session from "../../models/session.model.js";
+import logger from "../../utils/logger.js";
+import { isUpperCase } from "../../utils/typeVerification.js";
 
 class QueueService {
   async getSessionQueue(sessionId) {
@@ -10,8 +12,7 @@ class QueueService {
 
     return queueItems.map((track) => ({
       _id: track._id,
-      title: track.title,
-      artist: track.artists.join(", "),
+      title: track.title, 
       artists: track.artists,
       albumImage: track.track_image,
       table: track.added_by_name,
@@ -26,14 +27,21 @@ class QueueService {
 
   async handleGetSessionData(sessionCode) {
     try {
+      // Basic validation for session code format (e.g., length, uppercase)
+      if(!sessionCode || !isUpperCase(sessionCode)) {
+        return { success: false, message: "Invalid session code format." };
+      }
+
+      // Fetch session and populate current track details
       const session = await Session.findOne({
         session_code: sessionCode.toUpperCase(),
       }).populate("current_track_id");
       const queue = await this.getSessionQueue(session._id);
 
+      // If there's a current track, format its details for the response
       let currentlyPlaying = null;
       if (session.current_track_id) {
-        const currentTrack = await Queue.findById(session.current_track_id);
+        const currentTrack = session.current_track_id;
         if (currentTrack) {
           currentlyPlaying = {
             _id: currentTrack._id,
@@ -45,6 +53,8 @@ class QueueService {
           };
         }
       }
+
+      // Compile all session data into a structured response
       const data = {
         session: {
           id: session._id,
@@ -55,7 +65,7 @@ class QueueService {
           createdAt: session.createdAt,
         },
         stats: {
-          listeners: session.participants.length,
+          listeners: session.participants?.length ?? 0,
           inQueue: queue.length,
           estimatedWait: queue.length * 3,
         },
@@ -71,7 +81,7 @@ class QueueService {
     }
   }
 
-  async handleMoveSongToQueue(trackDetails, userName, sessionId) {
+  async handleMoveSongToQueue(trackDetails, user, sessionId) {
     try {
       const newQueueItem = new Queue({
         session_id: sessionId,
@@ -79,7 +89,8 @@ class QueueService {
         title: trackDetails.name,
         artists: trackDetails.artists,
         track_image: trackDetails.album?.images[0]?.url,
-        added_by: userName,
+        added_by_id: user.id,
+        added_by_name: user.name,
         total_votes: 5, // Will change when voting is implemented
         status: "queued"
       })
