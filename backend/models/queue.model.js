@@ -23,7 +23,7 @@ const queueSchema = new Schema(
     track_image: {
       type: String,
     },
-    added_by: {
+    added_by_id: {
       type: String, 
       required: true,
     },
