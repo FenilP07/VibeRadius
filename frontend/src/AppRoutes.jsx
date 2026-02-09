@@ -46,7 +46,7 @@ export default function AppRoutes() {
       <Route
         path="/session"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowGuest={true}>
             <SessionPage />
           </ProtectedRoute>
         }
@@ -55,7 +55,7 @@ export default function AppRoutes() {
       <Route
         path="/session/:sessionCode"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowGuest={true}>
             <SessionPage />
           </ProtectedRoute>
         }

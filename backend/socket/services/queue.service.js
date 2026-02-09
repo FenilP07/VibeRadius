@@ -28,7 +28,7 @@ class QueueService {
     try {
       const session = await Session.findOne({
         session_code: sessionCode.toUpperCase(),
-      }).populate("current-track_id");
+      }).populate("current_track_id");
       const queue = await this.getSessionQueue(session._id);
 
       let currentlyPlaying = null;

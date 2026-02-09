@@ -142,7 +142,9 @@ export default function SessionPage() {
     is_active,
     position,
     isReady,
+    deviceId,
     play,
+    playTrack,
     pause,
     nextTrack,
   } = useSpotifyPlayer();
@@ -190,12 +192,36 @@ export default function SessionPage() {
     return () => delete window.showToast;
   }, []);
 
-  // Auto-play when player is ready and track exists
+  const syncedOnce = useRef(false);
+
   useEffect(() => {
-    if (isReady && currentTrack) {
-      play().catch((err) => console.warn("Auto-play failed:", err));
-    }
-  }, [isReady, currentTrack]);
+    if (!isReady || !deviceId) return;
+    if (!currentSession) return;
+    if (syncedOnce.current) return;
+
+    syncedOnce.current = true;
+
+    (async () => {
+      try {
+        const uri = currentTrack?.uri;
+
+        if (uri) {
+          await playTrack(uri);
+        } else {
+          await pause();
+        }
+      } catch (err) {
+        console.warn("Initial playback sync failed:", err);
+        syncedOnce.current = false;
+      }
+    })();
+  }, [isReady, deviceId, currentSession, currentTrack?.uri, playTrack, pause]);
+  // // Auto-play when player is ready and track exists
+  // useEffect(() => {
+  //   if (isReady && currentTrack) {
+  //     play().catch((err) => console.warn("Auto-play failed:", err));
+  //   }
+  // }, [isReady, currentTrack]);
 
   // -------------------- HANDLERS --------------------
   const addToast = (message, type) => {
@@ -268,7 +294,7 @@ export default function SessionPage() {
         <QueueModal
           isOpen={isQueueOpen}
           onClose={() => setIsQueueOpen(false)}
-        // queue={displayQueue}
+          // queue={displayQueue}
         />
       )}
 
@@ -511,7 +537,10 @@ export default function SessionPage() {
                         <FaForward size={14} />
                       </button>
                       <button
-                        onClick={() => { addToast("Song Removed from Queue", "leave"); removeTrackFromQueue(song.id); }}
+                        onClick={() => {
+                          addToast("Song Removed from Queue", "leave");
+                          removeTrackFromQueue(song.id);
+                        }}
                         className="p-3 bg-surface-bg border border-primary-subtle rounded-xl text-text-muted hover:text-error hover:border-error opacity-0 group-hover:opacity-100 transition-all shadow-sm"
                       >
                         <FaTrashAlt size={14} />
