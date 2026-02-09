@@ -163,6 +163,7 @@ export const useQueueActions = () => {
     const getSocketInstance = async () => {
       try {
         const socketInstance = await getSocket("/session");
+        socketRef.current = socketInstance;
 
         if (!socketInstance) {
           console.warn("No socket instance available for queue actions");
@@ -199,7 +200,7 @@ export const useQueueActions = () => {
     return new Promise((resolve, reject) => {
       socketRef.current.emit(
         "get_session_data",
-        { sessionCode },
+        sessionCode,
         (response) => {
           if (response?.success) {
             console.log("Session data refreshed");

@@ -1,5 +1,7 @@
 import Queue from "../../models/queue.model.js";
 import Session from "../../models/session.model.js";
+import logger from "../../utils/logger.js";
+import { isUpperCase } from "../../utils/typeVerification.js";
 
 class QueueService {
   async getSessionQueue(sessionId) {
@@ -25,11 +27,24 @@ class QueueService {
 
   async handleGetSessionData(sessionCode) {
     try {
+      // Basic validation for session code format (e.g., length, uppercase)
+      if(!sessionCode || !isUpperCase(sessionCode)) {
+        return { success: false, message: "Invalid session code format." };
+      }
+
+      // Fetch session and populate current track details
       const session = await Session.findOne({
         session_code: sessionCode,
       }).populate("current_track_id");
+
+      if(!session) {
+        return { success: false, message: "Session not found." };
+      }
+
+      // Fetch queue items for the session
       const queue = await this.getSessionQueue(session._id);
 
+      // If there's a current track, format its details for the response
       let currentlyPlaying = null;
       if (session.current_track_id) {
         const currentTrack = await Queue.findById(session.current_track_id);
@@ -44,6 +59,8 @@ class QueueService {
           };
         }
       }
+
+      // Compile all session data into a structured response
       const data = {
         session: {
           id: session._id,
