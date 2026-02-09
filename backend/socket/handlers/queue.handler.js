@@ -7,11 +7,9 @@ const handleGetSessionData = async (
   sessionNamespace,
   userId,
   sessionCode,
-  data,
   callback
 ) => {
   try {
-    const { sessionCode } = data;
     const sessionData = await QueueService.handleGetSessionData(sessionCode);
     if (!sessionData.success) {
       if (callback && typeof callback === "function") {

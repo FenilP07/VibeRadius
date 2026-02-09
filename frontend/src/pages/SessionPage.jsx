@@ -238,7 +238,6 @@ export default function SessionPage() {
 
   const displayTrack = currentTrack;
   const displayQueue = queue.length ? queue : [];
-  console.log(`Queue:`, queue);
 
   return (
     <div className="min-h-screen bg-surface-bg text-text-primary relative overflow-x-hidden">

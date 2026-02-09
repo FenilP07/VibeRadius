@@ -10,8 +10,7 @@ class QueueService {
 
     return queueItems.map((track) => ({
       _id: track._id,
-      title: track.title,
-      artist: track.artists.join(", "),
+      title: track.title, 
       artists: track.artists,
       albumImage: track.track_image,
       table: track.added_by_name,
@@ -27,8 +26,8 @@ class QueueService {
   async handleGetSessionData(sessionCode) {
     try {
       const session = await Session.findOne({
-        session_code: sessionCode.toUpperCase(),
-      }).populate("current-track_id");
+        session_code: sessionCode,
+      }).populate("current_track_id");
       const queue = await this.getSessionQueue(session._id);
 
       let currentlyPlaying = null;

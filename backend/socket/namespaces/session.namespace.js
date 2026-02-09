@@ -133,13 +133,13 @@ const registerSessionNamespace = (io) => {
       }
     });
 
-    socket.on("get_session_data", async (data, callback) => {
+    socket.on("get_session_data", async (sessionCode, callback) => {
       try {
         await handleGetSessionData(
           socket,
           sessionNamespace,
           userId,
-          data,
+          sessionCode,
           callback
         );
       } catch (err) {
