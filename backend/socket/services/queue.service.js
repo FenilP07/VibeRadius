@@ -47,7 +47,7 @@ class QueueService {
       // If there's a current track, format its details for the response
       let currentlyPlaying = null;
       if (session.current_track_id) {
-        const currentTrack = await Queue.findById(session.current_track_id);
+        const currentTrack = session.current_track_id;
         if (currentTrack) {
           currentlyPlaying = {
             _id: currentTrack._id,
@@ -71,7 +71,7 @@ class QueueService {
           createdAt: session.createdAt,
         },
         stats: {
-          listeners: session.participants.length,
+          listeners: session.participants?.length ?? 0,
           inQueue: queue.length,
           estimatedWait: queue.length * 3,
         },
