@@ -30,78 +30,7 @@ import useSessionStore from "../store/sessionStore.js";
 import { useSessionSocket, useQueueActions } from "../socket/session.socket";
 import QueueModal from "../modals/QueueModal.jsx";
 import { disconnectSocket } from "../utils/socketManager.js";
-
-// -------------------- TOAST --------------------
-const Toast = ({ message, type, onClose }) => {
-  useEffect(() => {
-    const timer = setTimeout(onClose, 3000);
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
-  const styles = {
-    join: "bg-success-light text-success border-success/20",
-    leave: "bg-error-light text-error border-error/20",
-    info: "bg-info-light text-info border-info/20",
-  };
-
-  return (
-    <div
-      className={`flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-xl animate-in slide-in-from-top duration-300 ${styles[type]}`}
-    >
-      <div
-        className={`w-2.5 h-2.5 rounded-full ${
-          type === "join"
-            ? "bg-success"
-            : type === "leave"
-              ? "bg-error"
-              : "bg-info"
-        } animate-pulse`}
-      />
-      <span className="text-sm font-bold">{message}</span>
-    </div>
-  );
-};
-
-// -------------------- ACTIVITY DRAWER --------------------
-const ActivityDrawer = ({ isOpen, onClose, participants }) => (
-  <div
-    className={`fixed top-0 right-0 h-full w-80 bg-surface/90 backdrop-blur-xl shadow-2xl z-[140] transform transition-transform duration-500 ease-in-out border-l border-primary-subtle ${
-      isOpen ? "translate-x-0" : "translate-x-full"
-    }`}
-  >
-    <div className="p-6 pt-28 flex flex-col h-full">
-      <div className="flex items-center justify-between mb-8">
-        <h3 className="text-xl font-black text-text-primary flex items-center gap-3">
-          <FaBell className="text-primary" size={18} /> Live Participants
-        </h3>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-primary-subtle rounded-full text-text-muted transition-all"
-        >
-          <FaTimes size={20} />
-        </button>
-      </div>
-      <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-2">
-        {participants.map((p) => (
-          <div
-            key={p.id}
-            className="p-4 rounded-2xl bg-surface border border-primary-subtle/50 flex items-start gap-4 hover:shadow-md transition-shadow"
-          >
-            <div className="w-2.5 h-2.5 rounded-full mt-1.5 bg-success" />
-            <div>
-              <p className="text-sm font-bold text-text-primary leading-tight">
-                {p.name}
-              </p>
-              <p className="text-[10px] text-text-muted font-black mt-1 uppercase tracking-tighter">
-                Active
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
+import { getSocket } from "../utils/socketManager.js";
 
 // -------------------- SESSION PAGE --------------------
 export default function SessionPage() {
@@ -109,8 +38,7 @@ export default function SessionPage() {
   const navigate = useNavigate();
 
   const [isQueueOpen, setIsQueueOpen] = useState(false);
-  const [isActivityOpen, setIsActivityOpen] = useState(false);
-  const [toasts, setToasts] = useState([]);
+
   const [isLocked, setIsLocked] = useState(false);
 
   const sessionInitialized = useRef(false);
@@ -166,7 +94,25 @@ export default function SessionPage() {
   useSessionSocket(sessionCode, socketEventHandlers);
 
   // -------------------- EFFECTS --------------------
-  // Set session code from URL only once
+  useEffect(() => {
+    window.__onSpotifyTrackEnded = async () => {
+      try {
+        if (!sessionCode) return;
+
+        const sock = await getSocket("/session");
+        sock.emit("track_ended", { sessionCode }, (res) => {
+          if (!res?.success) console.warn("track_ended failed:", res?.message);
+        });
+      } catch (e) {
+        console.warn("track_ended emit error:", e);
+      }
+    };
+
+    return () => {
+      delete window.__onSpotifyTrackEnded;
+    };
+  }, [sessionCode]);
+
   useEffect(() => {
     if (
       urlSessionCode &&
@@ -179,19 +125,9 @@ export default function SessionPage() {
     }
   }, [urlSessionCode, sessionCode]);
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated) navigate("/");
   }, [isAuthenticated, navigate]);
-
-  // Global toast function
-  useEffect(() => {
-    window.showToast = (message, type) => {
-      const id = Date.now();
-      setToasts((prev) => [...prev, { id, message, type }]);
-    };
-    return () => delete window.showToast;
-  }, []);
 
   const syncedOnce = useRef(false);
 
@@ -217,18 +153,28 @@ export default function SessionPage() {
       }
     })();
   }, [isReady, deviceId, currentSession, currentTrack?.uri, playTrack, pause]);
-  // // Auto-play when player is ready and track exists
-  // useEffect(() => {
-  //   if (isReady && currentTrack) {
-  //     play().catch((err) => console.warn("Auto-play failed:", err));
-  //   }
-  // }, [isReady, currentTrack]);
+  const lastPlayedUriRef = useRef(null);
+
+  useEffect(() => {
+    if (!isReady || !deviceId) return;
+
+    const uri = currentTrack?.uri;
+
+    if (!uri) {
+      pause().catch(() => {});
+      lastPlayedUriRef.current = null;
+      return;
+    }
+
+    if (lastPlayedUriRef.current === uri) return;
+    lastPlayedUriRef.current = uri;
+
+    playTrack(uri).catch((e) =>
+      console.warn("playTrack on track change failed:", e)
+    );
+  }, [currentTrack?.uri, isReady, deviceId, playTrack, pause]);
 
   // -------------------- HANDLERS --------------------
-  const addToast = (message, type) => {
-    const id = Date.now();
-    setToasts((prev) => [...prev, { id, message, type }]);
-  };
 
   const handleLeaveSession = () => {
     disconnectSocket("/session");
@@ -241,10 +187,6 @@ export default function SessionPage() {
 
   const toggleLock = () => {
     setIsLocked((prev) => {
-      addToast(
-        !prev ? "Requests Paused" : "Queue Unlocked",
-        !prev ? "leave" : "join"
-      );
       return !prev;
     });
   };
@@ -269,26 +211,6 @@ export default function SessionPage() {
   return (
     <div className="min-h-screen bg-surface-bg text-text-primary relative overflow-x-hidden">
       <NavbarAdmin />
-
-      {/* Toasts */}
-      <div className="fixed top-24 right-6 z-[200] flex flex-col gap-3 w-72">
-        {toasts.map((t) => (
-          <Toast
-            key={t.id}
-            {...t}
-            onClose={() =>
-              setToasts((prev) => prev.filter((x) => x.id !== t.id))
-            }
-          />
-        ))}
-      </div>
-
-      {/* Activity Drawer */}
-      <ActivityDrawer
-        isOpen={isActivityOpen}
-        onClose={() => setIsActivityOpen(false)}
-        participants={participants}
-      />
 
       {isQueueOpen && (
         <QueueModal
@@ -331,15 +253,6 @@ export default function SessionPage() {
           </div>
 
           <div className="flex gap-3">
-            <button
-              onClick={() => setIsActivityOpen(true)}
-              className="relative p-4 bg-surface border border-primary-subtle text-text-primary rounded-2xl hover:bg-primary-subtle transition-all active:scale-90 shadow-sm"
-            >
-              <FaBell size={18} />
-              {participants.length > 0 && (
-                <span className="absolute top-3.5 right-3.5 w-2.5 h-2.5 bg-primary rounded-full border-2 border-surface animate-bounce" />
-              )}
-            </button>
             <button
               onClick={handleLeaveSession}
               className="px-6 py-4 rounded-2xl font-bold flex items-center gap-3 bg-error/10 text-error border border-error/20 hover:bg-error hover:text-white transition-all active:scale-95 shadow-sm"
@@ -419,13 +332,16 @@ export default function SessionPage() {
                         : "bg-white/20 text-white/40 cursor-not-allowed"
                     }`}
                   >
-                    {is_paused ? <FaPlay className="ml-1" size={20} /> : <FaPause className="ml-1" size={20} />}
+                    {is_paused ? (
+                      <FaPlay className="ml-1" size={20} />
+                    ) : (
+                      <FaPause className="ml-1" size={20} />
+                    )}
                   </button>
                   <button
                     disabled={!isReady}
                     onClick={() => {
                       nextTrack();
-                      addToast("Track Skipped", "info");
                     }}
                     className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center hover:bg-white/20 transition-all border border-white/5"
                   >
@@ -530,15 +446,11 @@ export default function SessionPage() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                      <button
-                        onClick={() => addToast("Song Prioritized", "join")}
-                        className="p-3 bg-surface-bg border border-primary-subtle rounded-xl text-text-muted hover:text-primary hover:border-primary opacity-0 group-hover:opacity-100 transition-all shadow-sm"
-                      >
+                      <button className="p-3 bg-surface-bg border border-primary-subtle rounded-xl text-text-muted hover:text-primary hover:border-primary opacity-0 group-hover:opacity-100 transition-all shadow-sm">
                         <FaForward size={14} />
                       </button>
                       <button
                         onClick={() => {
-                          addToast("Song Removed from Queue", "leave");
                           removeTrackFromQueue(song.id);
                         }}
                         className="p-3 bg-surface-bg border border-primary-subtle rounded-xl text-text-muted hover:text-error hover:border-error opacity-0 group-hover:opacity-100 transition-all shadow-sm"

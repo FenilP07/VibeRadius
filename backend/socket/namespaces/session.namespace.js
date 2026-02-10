@@ -6,6 +6,7 @@ import crypto from "crypto";
 import {
   handleGetSessionData,
   handleMoveSongToQueue,
+  handleTrackEnded,
 } from "../../socket/handlers/queue.handler.js";
 import { Namespace } from "socket.io";
 import queueService from "../services/queue.service.js";
@@ -208,6 +209,19 @@ const registerSessionNamespace = (io) => {
         if (callback && typeof callback === "function") {
           callback({ success: false, message: err.message });
         }
+      }
+    });
+
+    socket.on("track_ended", async (payload, cb) => {
+      try {
+        await handleTrackEnded(
+          sessionNamespace,
+          payload.sessionCode,
+          { id: userId, name: userName },
+          cb
+        );
+      } catch (err) {
+        cb?.({ success: false, message: err.message });
       }
     });
 

@@ -7,14 +7,14 @@ export const handleSubscribeDashboard = async (socket, userId, callback) => {
     socket.join("dashboard_subscribers");
 
     const activeSessions = await Session.find({
-      status: "active",
+      session_status: "active",
     })
       .select("code name participants queue")
       .lean();
 
     const dashboardData = activeSessions.map((session) => ({
-      code: session.code,
-      name: session.name,
+      code: session.session_code,
+      name: session.session_name,
       listeners: session.participants?.length || 0,
       songs: session.queue?.length || 0,
     }));
