@@ -15,7 +15,7 @@ const handleGetSessionData = async (
   socket,
   sessionNamespace,
   userId,
-  data,
+  sessionCode,
   callback
 ) => {
   try {
@@ -54,81 +54,134 @@ const handleMoveSongToQueue = async (
   user,
   callback
 ) => {
-  /* Do we have a Track details? -- If not, we just return an error
-    Does session really exist? -- If not, we return an error
-    Is the user part of the session? -- If not, we return an error
-    If all good, we add the track to the queue and emit an event to all participants in the session with the new queue data
-  */
-
   try {
-    // Validate track details
     if (!trackDetails) {
-      if (callback && typeof callback === "function") {
-        callback({ success: false, message: "No track details found." });
-      }
-      return callback;
+      return callback?.({ success: false, message: "No track details found." });
     }
 
-    // Validate session existence
     const session = await sessionService.getSessionByCode(sessionCode);
     if (!session) {
       logger.warn(`Session ${sessionCode} not found for moving song to queue.`);
-      if (callback && typeof callback === "function") {
-        callback({ success: false, message: "Session not found." });
-      }
-      return callback;
+      return callback?.({ success: false, message: "Session not found." });
     }
 
-    // validate participant
-    const isParticipant = session.participants.some((p) => p.id === user.id);
+    const isParticipant = session.participants?.some((p) => p.id === user.id);
     if (!isParticipant) {
       logger.warn(
         `User ${user.id} is not a participant of session ${sessionCode}. Cannot move song to queue.`
       );
-      if (callback && typeof callback === "function") {
-        callback({
-          success: false,
-          message: "User is not a participant of the session.",
-        });
-      }
-      return callback;
+      return callback?.({
+        success: false,
+        message: "User is not a participant of the session.",
+      });
     }
 
-    // Add track to Queue
-    const queueResult = await QueueService.handleMoveSongToQueue(trackDetails, user, session._id);
+    const queueResult = await QueueService.handleMoveSongToQueue(
+      trackDetails,
+      user,
+      session._id
+    );
+
     if (!queueResult.success) {
       logger.error(
         `Failed to move song to queue for session ${sessionCode}: ${queueResult.message}`
       );
-      if (callback && typeof callback === "function") {
-        callback({ success: false, message: queueResult.message });
-      }
-      return callback;
+      return callback?.({ success: false, message: queueResult.message });
     }
 
-    // Emit updated queue to session participants
     const roomId = sessionService.getRoomId(session);
+
     const updatedQueue = await QueueService.getSessionQueue(session._id);
+
     emitToDashboard(sessionNamespace.server, "dashboard_session_updated", {
       sessionCode,
       songs: updatedQueue.length,
     });
-    const payload = { queue: updatedQueue };
-    sessionNamespace.to(roomId).emit("queue_updated", payload);
-    if (callback && typeof callback === "function") {
-      callback({ success: true, ...payload });
-    }
-  } catch (err) {
-    logger.error(`Error in handleMoveSongToQueue: ${err.message}`);
-    if (callback && typeof callback === "function") {
-      callback({
-        success: false,
-        message: "Error moving song to queue",
-        error: err.message,
+
+    sessionNamespace.to(roomId).emit("queue_updated", { queue: updatedQueue });
+
+    if (queueResult.startedNow) {
+      const playing = queueResult.data;
+
+      sessionNamespace.to(roomId).emit("track_changed", {
+        track: {
+          _id: playing._id,
+          id: playing.track_id,
+          // trackId: playing.track_id,
+          uri: `spotify:track:${playing.track_id}`,
+          name: playing.title,
+          title: playing.title,
+          artists: playing.artists,
+          albumImage: playing.track_image,
+          status: playing.status,
+          addedBy: playing.added_by_name,
+        },
       });
     }
-    return callback;
+
+    return callback?.({
+      success: true,
+      queue: updatedQueue,
+      startedNow: !!queueResult.startedNow,
+    });
+  } catch (err) {
+    logger.error(`Error in handleMoveSongToQueue: ${err.message}`);
+    return callback?.({
+      success: false,
+      message: "Error moving song to queue",
+      error: err.message,
+    });
+  }
+};
+const handleTrackEnded = async (
+  sessionNamespace,
+  sessionCode,
+  user,
+  callback
+) => {
+  try {
+    const session = await sessionService.getSessionByCode(sessionCode);
+    if (!session) {
+      return callback?.({ success: false, message: "Session not found" });
+    }
+
+    const roomId = sessionService.getRoomId(session);
+
+    const result = await QueueService.advanceToNextTrack(session._id);
+
+    if (!result.success) {
+      return callback?.({ success: false, message: result.message });
+    }
+
+    const updatedQueue = await QueueService.getSessionQueue(session._id);
+    sessionNamespace.to(roomId).emit("queue_updated", { queue: updatedQueue });
+
+    if (!result.nextTrack) {
+      sessionNamespace.to(roomId).emit("track_changed", { track: null });
+      return callback?.({ success: true, track: null, queue: updatedQueue });
+    }
+
+    const t = result.nextTrack;
+
+    sessionNamespace.to(roomId).emit("track_changed", {
+      track: {
+        _id: t._id,
+        id: t.track_id,
+        uri: `spotify:track:${t.track_id}`,
+        name: t.title,
+        title: t.title,
+        artists: t.artists,
+        albumImage: t.track_image,
+        addedBy: t.added_by_name,
+        status: t.status,
+      },
+    });
+
+    return callback?.({ success: true, track: t, queue: updatedQueue });
+  } catch (error) {
+    logger.error("handleTrackEnded error:", error.message);
+    return callback?.({ success: false, message: error.message });
   }
 };
 
-export { handleGetSessionData, handleMoveSongToQueue };
+export { handleGetSessionData, handleMoveSongToQueue, handleTrackEnded };

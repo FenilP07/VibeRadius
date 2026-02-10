@@ -35,6 +35,8 @@ const useSpotifyPlayer = () => {
   const { setCurrentTrack } = useLiveSessionStore();
 
   const tokenRef = useRef(null);
+  const endedFiredRef = useRef(false);
+  const lastTrackIdRef = useRef(null);
 
   // --- Get fresh Spotify token ---
   const getToken = useCallback(async () => {
@@ -56,7 +58,7 @@ const useSpotifyPlayer = () => {
       if (!token) return;
 
       try {
-         // Get available devices
+        // Get available devices
         const devicesRes = await fetch(
           "https://api.spotify.com/v1/me/player/devices",
           {
@@ -73,7 +75,7 @@ const useSpotifyPlayer = () => {
             "VibeRadius device not available yet (not in /devices list)"
           );
           return;
-        } 
+        }
 
         console.log("Device id for transfer:", device_id);
         // Transfer playback
@@ -157,11 +159,27 @@ const useSpotifyPlayer = () => {
           setActive(false);
           return;
         }
-        setCurrentTrack(state.track_window.current_track);
-        setPaused(state.paused);
 
-        playerInstance.getCurrentState().then(currentState => {
-          (!currentState) ? setActive(false) : setActive(true);
+        setPaused(state.paused);
+        const currentId = state.track_window?.current_track?.id;
+        if (currentId && lastTrackIdRef.current !== currentId) {
+          lastTrackIdRef.current = currentId;
+          endedFiredRef.current = false;
+        }
+
+        const ended =
+          state.paused === true &&
+          state.position === 0 &&
+          currentId &&
+          lastTrackIdRef.current === currentId;
+
+        if (ended && !endedFiredRef.current) {
+          endedFiredRef.current = true;
+          window.__onSpotifyTrackEnded?.();
+        }
+
+        playerInstance.getCurrentState().then((currentState) => {
+          !currentState ? setActive(false) : setActive(true);
         });
       });
 
