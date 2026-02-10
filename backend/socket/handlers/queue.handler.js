@@ -15,7 +15,7 @@ const handleGetSessionData = async (
   socket,
   sessionNamespace,
   userId,
-  data,
+  sessionCode,
   callback
 ) => {
   try {
