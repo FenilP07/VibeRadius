@@ -56,6 +56,7 @@ export default function SessionPage() {
     stats,
     upNext,
     participants,
+    participantCount,
     sessionStatus,
     removeTrackFromQueue,
     isPlaying,

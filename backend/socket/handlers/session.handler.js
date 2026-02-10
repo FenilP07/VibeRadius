@@ -126,7 +126,7 @@ export const handleLeaveSession = async (
 
     const roomId = sessionService.getRoomId(session);
     const participantCount = sessionService.getParticipantCount(session);
-
+    
     socket.leave(roomId);
     socket.currentSessionId = null;
     socket.currentSessionCode = null;
