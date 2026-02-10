@@ -54,6 +54,7 @@ class QueueService {
         }
       }
 
+      logger.info(`Listener from backend ${session.participants.length}`)
       // Compile all session data into a structured response
       const data = {
         session: {

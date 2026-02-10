@@ -97,6 +97,7 @@ export const useSessionSocket = (
               "get_session_data", sessionCode,
               (dataRes) => {
                 if (dataRes?.success) {
+                  console.log("Session data received:", dataRes.data);
                   setSessionData(dataRes.data);
                 } else {
                   console.warn("Failed to get session data:", dataRes?.message);

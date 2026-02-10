@@ -67,6 +67,7 @@ class SessionService {
   getParticipantCount(session) {
     return session?.participants?.length || 0;
   }
+
 }
 
 export default new SessionService();
