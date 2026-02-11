@@ -12,14 +12,13 @@ class QueueService {
 
     return queueItems.map((track) => ({
       _id: track._id,
-      id: track.track_id,
+      track_id: track.track_id,
       title: track.title,
       artists: track.artists,
       albumImage: track.track_image,
       table: track.added_by_name,
       votes: track.total_votes,
-      trackId: track.track_id,
-      requestedBy: track.added_by,
+      requestedById: track.added_by_id,
       requestedByName: track.added_by_name,
       addedAt: track.createdAt,
       status: track.status,
@@ -47,7 +46,7 @@ class QueueService {
           currentlyPlaying = {
             _id: currentTrack._id,
             // trackId: currentTrack.track_id,
-            id: currentTrack.track_id,
+            track_id: currentTrack.track_id,
             uri: `spotify:track:${currentTrack.track_id}`,
             name: currentTrack.title,
             artists: currentTrack.artists,

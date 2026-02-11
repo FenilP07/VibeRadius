@@ -39,11 +39,12 @@ const useSessionStore = create((set, get) => ({
 
   initializeDashboardSocket: async () => {
     try {
-      const socket = await getSocket("/dashboard");
-      if (!socket) {
-        console.error("[Dashboard] Failed to get socket instance");
+      if(get().dashboardSocket) {
+        console.log("[Dashboard] Socket already initialized");
         return;
       }
+      
+      const socket = await getSocket("/dashboard");
       set({ dashboardSocket: socket, isWebSocketConnected: true });
 
       const onConnect = () => {
@@ -92,7 +93,7 @@ const useSessionStore = create((set, get) => ({
       const onSessionUpdated = ({ sessionCode, songs }) => {
         set((state) => ({
           activeSessions: state.activeSessions.map((session) =>
-            session.code === session.code ? { ...session, songs } : session
+            session.code === sessionCode ? { ...session, songs } : session
           ),
         }));
       };
@@ -107,12 +108,12 @@ const useSessionStore = create((set, get) => ({
         socket.emit("subscribe_dashboard", (response) => {
           if (response?.success) {
             set({ activeSessions: response.data });
-
             console.log("[Dashboard] Successfully subscribed", response.data);
           }
         });
         set({ isWebSocketConnected: true });
       }
+
 
       console.log("[Dashboard] WebSocket listeners registered");
     } catch (error) {

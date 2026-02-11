@@ -29,7 +29,7 @@ const handleGetSessionData = async (
       }
       return;
     }
-    logger.info(`Successfully retrieved session data for ${sessionCode}`);
+
     if (callback && typeof callback === "function") {
       callback({
         success: true,
@@ -84,7 +84,7 @@ const handleMoveSongToQueue = async (
 
     if (!queueResult.success) {
       logger.error(
-        `Failed to move song to queue for session ${sessionCode}: ${queueResult.message}`
+        `Song has already been added to Queue for Session ${sessionCode}, Message: ${queueResult.message}`
       );
       return callback?.({ success: false, message: queueResult.message });
     }

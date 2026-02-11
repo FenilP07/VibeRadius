@@ -1,5 +1,6 @@
 import logger from "../../utils/logger.js";
 import Session from "../../models/session.model.js";
+import QueueService from "../services/queue.service.js";
 
 export const handleSubscribeDashboard = async (socket, userId, callback) => {
   try {
@@ -8,15 +9,21 @@ export const handleSubscribeDashboard = async (socket, userId, callback) => {
 
     const activeSessions = await Session.find({
       session_status: "active",
-    })
-      .select("code name participants queue")
-      .lean();
+      host_id: userId,
+    }).select("_id session_code session_name participants current_track_id").lean();
+
+    const queue = await QueueService.getSessionQueue(activeSessions.map(s => s._id));
+
+    const getQueueCount = (sessionId) => {
+      return queue.filter(q => q.session_id.toString() === sessionId.toString()).length;
+    };
 
     const dashboardData = activeSessions.map((session) => ({
+      id: session._id,
       code: session.session_code,
       name: session.session_name,
       listeners: session.participants?.length || 0,
-      songs: session.queue?.length || 0,
+      songs: getQueueCount(session._id) || 0, // TODO: Optimize this by pre-counting queues for all sessions in one go
     }));
 
     if (callback && typeof callback === "function") {
