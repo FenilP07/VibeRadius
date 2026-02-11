@@ -32,7 +32,7 @@ apiClient.interceptors.response.use(
       "/api/auth/register",
       "/api/auth/refresh-token",
       "/api/auth/logout",
-      "/api/auth/verify-token",
+      // "/api/auth/verify-token",
     ];
 
     if (skipUrls.some((url) => originalRequest.url.includes(url))) {
@@ -57,7 +57,8 @@ apiClient.interceptors.response.use(
         await apiClient.post(
           "/api/auth/refresh-token",
           {},
-          { skipAuthRefresh: true }
+
+          { withCredentials: true, skipAuthRefresh: true }
         );
 
         processQueue(null);

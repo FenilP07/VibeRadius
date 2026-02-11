@@ -75,15 +75,17 @@ const loginUser = asyncHandler(async (req, res) => {
   const { accessToken, refreshToken } = await generateAccessRefreshToken(
     user._id
   );
+
+  user.refreshToken = refreshToken;
+  await user.save({ validateBeforeSave: false });
+
   const loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
 
-  const refreshCookieOptions = {
-    ...BASE_COOKIE_OPTIONS,
-    maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined,
-  };
-
+  const refreshCookieOptions = rememberMe
+    ? { ...REFRESH_TOKEN_COOKIE_OPTIONS }
+    : { ...BASE_COOKIE_OPTIONS };
   res
     .status(200)
     .cookie("accessToken", accessToken, ACCESS_TOKEN_COOKIE_OPTIONS)
@@ -120,20 +122,23 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       throw new APIError(401, "Invalid session");
     }
 
-    // Rotate refresh token
     const newAccessToken = generateAccessToken(user);
     const newRefreshToken = generateRefreshToken(user);
 
     user.refreshToken = newRefreshToken;
     await user.save({ validateBeforeSave: false });
 
+    const isPersistent = req.cookies.refreshToken;
+
+    const refreshCookieOptions = isPersistent
+      ? { ...REFRESH_TOKEN_COOKIE_OPTIONS }
+      : { ...BASE_COOKIE_OPTIONS };
+
     res
       .status(200)
       .cookie("accessToken", newAccessToken, ACCESS_TOKEN_COOKIE_OPTIONS)
-      .cookie("refreshToken", newRefreshToken, REFRESH_TOKEN_COOKIE_OPTIONS)
-      .json(
-        new APIResponse(200, { accessToken: newAccessToken }, "Token refreshed")
-      );
+      .cookie("refreshToken", newRefreshToken, refreshCookieOptions)
+      .json(new APIResponse(200, {}, "Token refreshed"));
   } catch (error) {
     res.clearCookie("accessToken", BASE_COOKIE_OPTIONS);
     res.clearCookie("refreshToken", BASE_COOKIE_OPTIONS);
