@@ -4,6 +4,7 @@ import useLiveSessionStore from "../store/liveSessionStore";
 import { getSocket } from "../utils/socketManager";
 
 export const useSessionSocket = (
+  sessionId,
   sessionCode,
   eventHandlers = {},
   { guest = false } = {}
@@ -38,9 +39,10 @@ export const useSessionSocket = (
       return;
     }
 
-    if (!sessionCode) return;
+    // change to sessionId get the session code from backend
+    if (!sessionCode) return; 
 
-    if (initializedSession.current === sessionCode) return;
+    if (initializedSession.current === sessionCode) return; // Prevent re-initialization if sessionId is the same
 
     hasLoggedWaiting.current = false;
 
@@ -50,7 +52,7 @@ export const useSessionSocket = (
     const initSocket = async () => {
       try {
         console.log(
-          `[Socket] Initializing connection for session: ${sessionCode}`
+          `[Socket] Initializing connection for session: ${sessionCode}` // change to sessionId
         );
         setJoining(true);
 
@@ -87,14 +89,14 @@ export const useSessionSocket = (
           socketInstance.on(event, handler);
         });
 
-        socketInstance.emit("join_session", sessionCode, (res) => {
+        socketInstance.emit("join_session", sessionCode, (res) => { // change to sessionId
           setJoining(false);
           if (res?.success) {
             setJoinError(null);
-            initializedSession.current = sessionCode;
+            initializedSession.current = sessionCode; // change to sessionId
 
             socketInstance.emit(
-              "get_session_data", sessionCode,
+              "get_session_data", sessionCode, // change to sessionId
               (dataRes) => {
                 if (dataRes?.success) {
                   console.log("Session data received:", dataRes.data);
@@ -121,9 +123,10 @@ export const useSessionSocket = (
     return () => {
       cancelled = true;
       if (socketRef.current) {
-        console.log(`[Session] Cleaning up: ${sessionCode}`);
-        socketRef.current.emit("leave_session", sessionCode, (res) => {
-          if (res?.success) console.log(`[Session] Left: ${sessionCode}`);
+        console.log(`[Session] Cleaning up: ${sessionCode}`); // change to sessionId
+        socketRef.current.emit("leave_session", sessionCode, (res) => { // change to sessionId
+          if (res?.success) console.log(`[Session] Left: ${sessionCode}`); // change to sessionId
+          else console.warn(`[Session] Leave failed:`, res?.message);
         });
         socketRef.current.removeAllListeners();
         socketRef.current = null;
@@ -134,7 +137,7 @@ export const useSessionSocket = (
   }, [
     isAuthenticated,
     socketToken,
-    sessionCode,
+    sessionCode, // change to sessionId
     guest,
     user,
     setConnected,
@@ -150,7 +153,7 @@ export const useSessionSocket = (
 
 export const useQueueActions = () => {
   const {
-    sessionCode,
+    sessionCode, // change to sessionId get the session code from backend
     currentUser,
     setAddToQueueTrack,
     setQueue
@@ -173,7 +176,7 @@ export const useQueueActions = () => {
 
         const bindObject = {
           trackDetails: addToQueueTrack,
-          sessionCode,
+          sessionCode, // change to sessionId
           user: currentUser,
         }
 
@@ -201,7 +204,7 @@ export const useQueueActions = () => {
     return new Promise((resolve, reject) => {
       socketRef.current.emit(
         "get_session_data",
-        sessionCode,
+        sessionCode, // change to sessionId
         (response) => {
           if (response?.success) {
             console.log("Session data refreshed");

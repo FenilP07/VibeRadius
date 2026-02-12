@@ -14,6 +14,7 @@ import {
 import { NavbarAdmin } from "../components/admin/NavbarAdmin";
 import CreateSessionModal from "../modals/SessionModal";
 import useSessionStore from "../store/sessionStore";
+import useLiveSessionStore from "../store/liveSessionStore";
 import { useNavigate } from "react-router-dom";
 
 const Skeleton = ({ className }) => (
@@ -44,6 +45,8 @@ export default function HomePage() {
     cleanupDashboardWebSocket,
     isWebSocketConnected,
   } = useSessionStore();
+
+  const { setSessionId, setSessionCode } = useLiveSessionStore();
 
   useEffect(() => {
     fetchDashboardData();
@@ -160,7 +163,9 @@ export default function HomePage() {
                         <button
                           className="bg-[#5C4033] hover:bg-[#3d2b22] text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ml-auto md:ml-0 shadow-lg shadow-[#5C4033]/10"
                           onClick={() => {
-                            setActiveSessionCode(session.code);
+                            setSessionId(session.id); 
+                            console.log("Selected session ID for live session store: ", session.id);
+                            setSessionCode(session.code);
                             navigate(`/session/${session.code}`);
                           }}
                         >
