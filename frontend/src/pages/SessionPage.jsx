@@ -64,7 +64,7 @@ export default function SessionPage() {
     reset,
   } = useLiveSessionStore();
 
-  const { refreshSessionData } = useQueueActions();
+  useQueueActions();
 
   const {
     player,
@@ -249,7 +249,7 @@ export default function SessionPage() {
             </h1>
             <p className="text-text-secondary font-medium mt-1">
               {currentSession?.venue || "Main Lounge"} •{" "}
-              <span className="text-primary">Admin View</span>
+              <span className="text-primary">Host View</span>
             </p>
           </div>
 
