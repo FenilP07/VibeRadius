@@ -39,24 +39,30 @@ const useSessionStore = create((set, get) => ({
 
   initializeDashboardSocket: async () => {
     try {
-      if(get().dashboardSocket) {
-        console.log("[Dashboard] Socket already initialized");
+      const existing = get().dashboardSocket;
+      if (existing?.connected) {
+        console.log("[Dashboard] Socket already initialized & connected");
         return;
       }
-      
+
       const socket = await getSocket("/dashboard");
+      socket.removeAllListeners();
       set({ dashboardSocket: socket, isWebSocketConnected: true });
 
-      const onConnect = () => {
-        console.log("[Dashboard] WebSocket connected");
-        set({ isWebSocketConnected: true });
-
+      const subscribe = () => {
         socket.emit("subscribe_dashboard", (response) => {
           if (response?.success) {
             set({ activeSessions: response.data });
             console.log("[Dashboard] Successfully subscribed", response.data);
           }
         });
+      };
+
+      const onConnect = () => {
+        console.log("[Dashboard] WebSocket connected");
+        set({ isWebSocketConnected: true });
+
+        subscribe();
       };
 
       const onDisconnect = (reason) => {
@@ -105,15 +111,9 @@ const useSessionStore = create((set, get) => ({
       socket.on("dashboard_session_updated", onSessionUpdated);
 
       if (socket.connected) {
-        socket.emit("subscribe_dashboard", (response) => {
-          if (response?.success) {
-            set({ activeSessions: response.data });
-            console.log("[Dashboard] Successfully subscribed", response.data);
-          }
-        });
         set({ isWebSocketConnected: true });
+        subscribe();
       }
-
 
       console.log("[Dashboard] WebSocket listeners registered");
     } catch (error) {

@@ -7,16 +7,23 @@ import {
   FaPlus,
   FaCircle,
   FaBolt,
+  FaTimes,
 } from "react-icons/fa";
 import useLiveSessionStore from "../store/liveSessionStore.js";
 import useSessionStore from "../store/sessionStore.js";
 import QueueModal from "../modals/QueueModal.jsx";
 import { useSessionSocket, useQueueActions } from "../socket/session.socket.js";
-
+import useAuthStore from "../store/authStore.js";
+import { getSocket } from "../utils/socketManager.js";
+import { disconnectSocket } from "../utils/socketManager.js";
 export default function CustomerView() {
   const { sessionCode: urlSessionCode } = useParams();
+  const navigate = useNavigate();
 
   const [isQueueOpen, setIsQueueOpen] = useState(false);
+
+  const { activeSessionCode, setActiveSessionCode, clearError } =
+    useSessionStore();
 
   const sessionInitialized = useRef(false);
 
@@ -28,6 +35,7 @@ export default function CustomerView() {
     queue,
     sessionStatus,
     setSessionCode,
+    reset,
   } = useLiveSessionStore();
 
   useEffect(() => {
@@ -57,6 +65,19 @@ export default function CustomerView() {
   useQueueActions();
 
   const displayQueue = queue.length ? queue : [];
+
+  const handleLeaveSession = async () => {
+    const socket = await getSocket("/session");
+
+    if (socket?.connected) {
+      socket.emit("leave_session", urlSessionCode || sessionCode);
+    }
+    disconnectSocket("/session");
+    reset();
+    setActiveSessionCode(null);
+    sessionInitialized.current = false;
+    navigate("/");
+  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-[#F5F5F7] font-sans pb-44 relative overflow-hidden">
@@ -111,6 +132,12 @@ export default function CustomerView() {
 
       {/* 5. SEARCH TRIGGER */}
       <div className="fixed bottom-10 left-0 right-0 px-8 z-[100]">
+        <button
+          onClick={handleLeaveSession}
+          className="px-6 py-4 rounded-2xl font-bold flex items-center gap-3 bg-error/10 text-error border border-error/20 hover:bg-error hover:text-white transition-all active:scale-95 shadow-sm"
+        >
+          <FaTimes /> Leave
+        </button>
         <button
           onClick={() => setIsQueueOpen(true)}
           className="w-full bg-[#E07A3D] py-6 rounded-[2.5rem] flex items-center justify-center gap-4 shadow-[0_25px_50px_rgba(224,122,61,0.35)] active:scale-95 transition-all"

@@ -177,7 +177,12 @@ export default function SessionPage() {
 
   // -------------------- HANDLERS --------------------
 
-  const handleLeaveSession = () => {
+  const handleLeaveSession = async () => {
+    const socket = await getSocket("/session");
+
+    if (socket?.connected) {
+      socket.emit("leave_session", urlSessionCode || sessionCode);
+    }
     disconnectSocket("/session");
     reset();
     setActiveSessionCode(null);

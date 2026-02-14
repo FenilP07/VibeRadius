@@ -27,15 +27,21 @@ apiClient.interceptors.response.use(
     if (error.response?.status !== 401) return Promise.reject(error);
 
     // Skip certain URLs
-    const skipUrls = [
+    const skipBackendUrls = [
       "/api/auth/login",
       "/api/auth/register",
       "/api/auth/refresh-token",
       "/api/auth/logout",
-      // "/api/auth/verify-token",
+      "/api/auth/verify-token",
     ];
 
-    if (skipUrls.some((url) => originalRequest.url.includes(url))) {
+    const skipFrontendUrl = ["/customer"];
+
+    if (skipFrontendUrl.includes(window.location.pathname)) {
+      return Promise.reject(error);
+    }
+
+    if (skipBackendUrls.some((url) => originalRequest.url.includes(url))) {
       return Promise.reject(error);
     }
 
