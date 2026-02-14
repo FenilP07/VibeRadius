@@ -68,13 +68,13 @@ export default function CustomerView() {
 
   const handleLeaveSession = async () => {
     const socket = await getSocket("/session");
-    if (socket) {
-      socket.emit("leave_session");
+
+    if (socket?.connected) {
+      socket.emit("leave_session", urlSessionCode || sessionCode);
     }
     disconnectSocket("/session");
     reset();
     setActiveSessionCode(null);
-    // resetSpotifyPlayer();
     sessionInitialized.current = false;
     navigate("/");
   };
