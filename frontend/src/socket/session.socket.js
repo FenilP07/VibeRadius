@@ -1,14 +1,14 @@
 import { useEffect, useRef } from "react";
 import useAuthStore from "../store/authStore";
 import useLiveSessionStore from "../store/liveSessionStore";
-import { getSocket } from "../utils/socketManager";
+import { disconnectSocket, getSocket } from "../utils/socketManager";
 
 export const useSessionSocket = (
   sessionCode,
   eventHandlers = {},
   { guest = false } = {}
 ) => {
-  const { isAuthenticated, socketToken, user } = useAuthStore();
+  const { isAuthenticated, socketToken } = useAuthStore();
   const {
     setConnected,
     setJoining,
@@ -93,17 +93,14 @@ export const useSessionSocket = (
             setJoinError(null);
             initializedSession.current = sessionCode;
 
-            socketInstance.emit(
-              "get_session_data", sessionCode,
-              (dataRes) => {
-                if (dataRes?.success) {
-                  console.log("Session data received:", dataRes.data);
-                  setSessionData(dataRes.data);
-                } else {
-                  console.warn("Failed to get session data:", dataRes?.message);
-                }
+            socketInstance.emit("get_session_data", sessionCode, (dataRes) => {
+              if (dataRes?.success) {
+                console.log("Session data received:", dataRes.data);
+                setSessionData(dataRes.data);
+              } else {
+                console.warn("Failed to get session data:", dataRes?.message);
               }
-            );
+            });
           } else {
             console.error(`[Session] Join failed:`, res?.message);
             setJoinError(res?.message || "Failed to join session");
@@ -121,11 +118,15 @@ export const useSessionSocket = (
     return () => {
       cancelled = true;
       if (socketRef.current) {
+        socketRef.current.off("connect");
+        socketRef.current.off("disconnect");
+        socketRef.current.off("user_joined");
+        socketRef.current.off("user_left");
         console.log(`[Session] Cleaning up: ${sessionCode}`);
         socketRef.current.emit("leave_session", sessionCode, (res) => {
           if (res?.success) console.log(`[Session] Left: ${sessionCode}`);
         });
-        socketRef.current.removeAllListeners();
+        disconnectSocket("/session");
         socketRef.current = null;
         setConnected(false);
         initializedSession.current = null;
@@ -136,7 +137,6 @@ export const useSessionSocket = (
     socketToken,
     sessionCode,
     guest,
-    user,
     setConnected,
     setJoining,
     setJoinError,
@@ -149,15 +149,11 @@ export const useSessionSocket = (
 };
 
 export const useQueueActions = () => {
-  const {
-    sessionCode,
-    currentUser,
-    setAddToQueueTrack,
-    setQueue
-  } = useLiveSessionStore();
+  const { sessionCode, currentUser, setAddToQueueTrack, setQueue } =
+    useLiveSessionStore();
   const socketRef = useRef(null);
 
-    const addToQueueTrack = useLiveSessionStore((state) => state.addToQueueTrack);
+  const addToQueueTrack = useLiveSessionStore((state) => state.addToQueueTrack);
 
   // Get socket instance
   useEffect(() => {
@@ -175,19 +171,22 @@ export const useQueueActions = () => {
           trackDetails: addToQueueTrack,
           sessionCode,
           user: currentUser,
-        }
+        };
 
         socketInstance.emit("move_song_to_queue", bindObject, (data) => {
           if (data?.success) {
             setQueue(data.queue);
             setAddToQueueTrack(null);
           } else {
-            return { success: false, message: data?.message || "Failed to add to queue" };
+            return {
+              success: false,
+              message: data?.message || "Failed to add to queue",
+            };
           }
-        })
+        });
       } catch (err) {
         return { success: false, message: err.message };
-      };
+      }
     };
     getSocketInstance();
   }, [addToQueueTrack]);
@@ -199,20 +198,16 @@ export const useQueueActions = () => {
     }
 
     return new Promise((resolve, reject) => {
-      socketRef.current.emit(
-        "get_session_data",
-        sessionCode,
-        (response) => {
-          if (response?.success) {
-            console.log("Session data refreshed");
-            useLiveSessionStore.getState().setSessionData(response.data);
-            resolve(response.data);
-          } else {
-            console.error("Refresh failed:", response?.message);
-            reject(new Error(response?.message || "Failed to refresh"));
-          }
+      socketRef.current.emit("get_session_data", sessionCode, (response) => {
+        if (response?.success) {
+          console.log("Session data refreshed");
+          useLiveSessionStore.getState().setSessionData(response.data);
+          resolve(response.data);
+        } else {
+          console.error("Refresh failed:", response?.message);
+          reject(new Error(response?.message || "Failed to refresh"));
         }
-      );
+      });
     });
   };
 

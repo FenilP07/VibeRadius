@@ -20,7 +20,7 @@ export const getSocket = async (namespace, { guest = false } = {}) => {
     }
   }
 
-  if (sockets[namespace]?.connected) {
+  if (sockets[namespace]) {
     return sockets[namespace];
   }
 

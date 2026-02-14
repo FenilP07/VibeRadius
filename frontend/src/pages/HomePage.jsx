@@ -44,7 +44,9 @@ export default function HomePage() {
     cleanupDashboardWebSocket,
     isWebSocketConnected,
   } = useSessionStore();
-
+  useEffect(() => {
+    console.log("activeSessions:", activeSessions);
+  }, [activeSessions]);
   useEffect(() => {
     fetchDashboardData();
     initializeDashboardSocket();
