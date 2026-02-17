@@ -34,17 +34,21 @@ import { getSocket } from "../utils/socketManager.js";
 
 // -------------------- SESSION PAGE --------------------
 export default function SessionPage() {
+  const { sessionCode: urlSessionCode } = useParams();
   const navigate = useNavigate();
+
   const [isQueueOpen, setIsQueueOpen] = useState(false);
+
   const [isLocked, setIsLocked] = useState(false);
+
   const sessionInitialized = useRef(false);
 
   // -------------------- STORES --------------------
   const { isAuthenticated } = useAuthStore();
-  const { activeSessionCode, setActiveSessionCode, clearError } = useSessionStore();
+  const { activeSessionCode, setActiveSessionCode, clearError } =
+    useSessionStore();
   const {
     currentSession,
-    currentSessionId,
     sessionCode,
     isConnected,
     currentTrack,
@@ -88,8 +92,6 @@ export default function SessionPage() {
     []
   );
 
-  console.log("Current session: ", currentSessionId);
-  console.log("Initializing session socket with code:", sessionCode);
   useSessionSocket(sessionCode, socketEventHandlers);
 
   // -------------------- EFFECTS --------------------
@@ -111,6 +113,18 @@ export default function SessionPage() {
       delete window.__onSpotifyTrackEnded;
     };
   }, [sessionCode]);
+
+  useEffect(() => {
+    if (
+      urlSessionCode &&
+      urlSessionCode !== sessionCode &&
+      !sessionInitialized.current
+    ) {
+      console.log(`📍 Setting session code from URL: ${urlSessionCode}`);
+      setSessionCode(urlSessionCode);
+      sessionInitialized.current = true;
+    }
+  }, [urlSessionCode, sessionCode]);
 
   useEffect(() => {
     if (!isAuthenticated) navigate("/");
@@ -148,7 +162,7 @@ export default function SessionPage() {
     const uri = currentTrack?.uri;
 
     if (!uri) {
-      pause().catch(() => { });
+      pause().catch(() => {});
       lastPlayedUriRef.current = null;
       return;
     }
@@ -184,10 +198,15 @@ export default function SessionPage() {
   };
 
   const handleQRCodeClick = () => {
-      if (sessionCode) {
-        navigate(`/qrcode`);
-      } else {
-      console.error("Session code is not valid for QR code generation");
+    try {
+      const pathParts = window.location.pathname.split("/");
+      const sessionCodeFromPath = activeSessionCode || pathParts.at(-1);
+      setActiveSessionCode(sessionCodeFromPath);
+      if (!sessionCodeFromPath)
+        throw new Error("No active session code found.");
+      navigate(`/qrcode`);
+    } catch (error) {
+      console.error("Failed to navigate to QR code page:", error);
       clearError();
     }
   };
@@ -203,7 +222,7 @@ export default function SessionPage() {
         <QueueModal
           isOpen={isQueueOpen}
           onClose={() => setIsQueueOpen(false)}
-        // queue={displayQueue}
+          // queue={displayQueue}
         />
       )}
 
@@ -213,10 +232,11 @@ export default function SessionPage() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <span
-                className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border ${isConnected && sessionStatus === "active"
+                className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border ${
+                  isConnected && sessionStatus === "active"
                     ? "text-success bg-success-light border-success/10"
                     : "text-text-muted bg-surface border-primary-subtle/20"
-                  }`}
+                }`}
               >
                 <FaCircle
                   className={`text-[6px] ${isConnected ? "animate-pulse" : ""}`}
@@ -288,10 +308,11 @@ export default function SessionPage() {
                   </span>
                   <button
                     onClick={toggleLock}
-                    className={`p-2.5 rounded-xl transition-all ${isLocked
+                    className={`p-2.5 rounded-xl transition-all ${
+                      isLocked
                         ? "bg-error text-white scale-110"
                         : "bg-white/5 text-white/40 hover:text-white"
-                      }`}
+                    }`}
                     title={isLocked ? "Unlock Requests" : "Lock Requests"}
                   >
                     {isLocked ? <FaLock size={14} /> : <FaUnlock size={14} />}
@@ -311,10 +332,11 @@ export default function SessionPage() {
                   <button
                     disabled={!isReady}
                     onClick={() => (is_paused ? play() : pause())}
-                    className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all shadow-xl ${isReady
+                    className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all shadow-xl ${
+                      isReady
                         ? "bg-white text-accent-dark hover:scale-105 active:scale-95"
                         : "bg-white/20 text-white/40 cursor-not-allowed"
-                      }`}
+                    }`}
                   >
                     {is_paused ? (
                       <FaPlay className="ml-1" size={20} />
