@@ -5,8 +5,6 @@ import logger from "../utils/logger.js";
 
 export const refreshSpotifyToken = async (userId) => {
   try {
-    console.log(`Refreshing token for user: ${userId}`);
-
     const currentToken = await SpotifyToken.findOne({ userId });
 
     if (!currentToken) {

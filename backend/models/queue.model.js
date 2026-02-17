@@ -24,7 +24,7 @@ const queueSchema = new Schema(
       type: String,
     },
     added_by_id: {
-      type: String, 
+      type: String,
       required: true,
     },
     added_by_name: {
@@ -47,7 +47,13 @@ const queueSchema = new Schema(
   }
 );
 
-queueSchema.index({ session_id: 1, track_id: 1 }, { unique: true });
+queueSchema.index(
+  { session_id: 1, track_id: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: { $in: ["queued", "playing"] } },
+  }
+);
 queueSchema.index({ session_id: 1, status: 1, total_votes: -1 });
 
 const Queue = mongoose.model("Queue", queueSchema);
