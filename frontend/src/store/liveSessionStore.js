@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 const useLiveSessionStore = create((set, get) => ({
   currentSession: null,
+  currentSessionId: null,
   sessionCode: null,
   isConnected: false,
   isJoining: false,
@@ -56,7 +57,7 @@ const useLiveSessionStore = create((set, get) => ({
   setSessionData: (data) => {
     set({
       currentSession: data.session,
-      sessionCode: data.session.code,
+      sessionCode: data.session.code, // Ensure session code is updated from session data if available 
       hostId: data.session.hostId,
       sessionStatus: data.session.status,
       currentTrack: data.currentlyPlaying,
@@ -66,6 +67,8 @@ const useLiveSessionStore = create((set, get) => ({
       participantCount: data.stats.listeners,
     });
   },
+
+  setSessionId: (id) => set({ currentSessionId: id }),
 
   handleUserJoined: (data) => {
     const { userId, name, participantCount } = data;

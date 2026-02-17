@@ -4,7 +4,7 @@ import { getSocket, disconnectSocket } from "../utils/socketManager.js";
 
 const useSessionStore = create((set, get) => ({
   activeSessions: [],
-  activeSessionCode: null,
+  // activeSessionCode: null,
   pastSessions: [],
 
   dashboardLoading: false,
