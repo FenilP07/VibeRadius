@@ -41,6 +41,7 @@ const useSpotifyPlayer = () => {
   // --- Get fresh Spotify token ---
   const getToken = useCallback(async () => {
     try {
+      console.log("Fetching Spotify token...");
       const res = await authService.spotifyToken();
       tokenRef.current = res.data.access_token;
       return res.data.access_token;
@@ -59,6 +60,7 @@ const useSpotifyPlayer = () => {
 
       try {
         // Get available devices
+        console.log("Checking available devices for transfer...");
         const devicesRes = await fetch(
           "https://api.spotify.com/v1/me/player/devices",
           {
@@ -97,8 +99,10 @@ const useSpotifyPlayer = () => {
 
   // --- Initialize Spotify SDK and player ---
   useEffect(() => {
+    console.log("Initializing Spotify Player...");
     if (isInitializing || !isAuthenticated || !spotifyConnected) return;
 
+    console.log("Spotify auth ready, setting up player...");
     if (globalPlayer && globalDeviceId) {
       setPlayer(globalPlayer);
       setDeviceId(globalDeviceId);
@@ -106,6 +110,7 @@ const useSpotifyPlayer = () => {
       return;
     }
 
+    console.log("Loading Spotify SDK...");
     if (!sdkLoading && !sdkLoaded) {
       sdkLoading = true;
       const script = document.createElement("script");
@@ -114,8 +119,10 @@ const useSpotifyPlayer = () => {
       document.body.appendChild(script);
     }
 
+    console.log("Spotify Player setup complete");
     const initializePlayer = async () => {
       if (globalPlayer) return;
+      console.log("Creating new Spotify Player instance...");
       const token = await getToken();
       if (!token) return;
 
@@ -127,6 +134,13 @@ const useSpotifyPlayer = () => {
         },
         volume: 0.5,
       });
+
+      if(!playerInstance) {
+        console.error("Failed to create Spotify Player instance");
+        return;
+      }
+      
+      console.log("Spotify Player instance created:", playerInstance);
 
       playerInstance.addListener("ready", async ({ device_id }) => {
         console.log("✅ Player ready", device_id);
@@ -160,8 +174,9 @@ const useSpotifyPlayer = () => {
           return;
         }
 
-        setPaused(state.paused);
+        // setPaused(state.paused);
         const currentId = state.track_window?.current_track?.id;
+        console.log("Current track ID:", currentId, "Position:");
         if (currentId && lastTrackIdRef.current !== currentId) {
           lastTrackIdRef.current = currentId;
           endedFiredRef.current = false;
@@ -172,6 +187,8 @@ const useSpotifyPlayer = () => {
           state.position === 0 &&
           currentId &&
           lastTrackIdRef.current === currentId;
+
+          console.log("Track ended condition:", ended)
 
         if (ended && !endedFiredRef.current) {
           endedFiredRef.current = true;

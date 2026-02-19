@@ -133,6 +133,13 @@ export default function SessionPage() {
   const syncedOnce = useRef(false);
 
   useEffect(() => {
+    console.log("Checking initial playback sync conditions:", {
+      isReady,
+      deviceId,
+      currentSession,
+      currentTrackUri: currentTrack?.uri,
+      syncedOnce: syncedOnce.current,
+    });
     if (!isReady || !deviceId) return;
     if (!currentSession) return;
     if (syncedOnce.current) return;
@@ -142,6 +149,7 @@ export default function SessionPage() {
     (async () => {
       try {
         const uri = currentTrack?.uri;
+        console.log("Current track URI for initial sync:", uri);
 
         if (uri) {
           await playTrack(uri);

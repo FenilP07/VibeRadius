@@ -25,6 +25,27 @@ class QueueService {
     }));
   }
 
+  async getLastPlayedInQueue(sessionId) {
+    const lastPlayed = await Queue.findOne({
+      session_id: sessionId,
+      status: "played",
+    }).sort({ createdAt: -1 });
+
+    return {
+      _id: lastPlayed?._id,
+      track_id: lastPlayed?.track_id,
+      title: lastPlayed?.title,
+      artists: lastPlayed?.artists,
+      albumImage: lastPlayed?.track_image,
+      table: lastPlayed?.added_by_name,
+      votes: lastPlayed?.total_votes,
+      requestedById: lastPlayed?.added_by_id,
+      requestedByName: lastPlayed?.added_by_name,
+      addedAt: lastPlayed?.createdAt,
+      status: lastPlayed?.status,
+    };
+  }
+
   async handleGetSessionData(sessionCode) {
     try {
       // Basic validation for session code format (e.g., length, uppercase)
@@ -40,21 +61,23 @@ class QueueService {
 
       // If there's a current track, format its details for the response
       let currentlyPlaying = null;
-      if (session.current_track_id) {
-        const currentTrack = session.current_track_id;
-        if (currentTrack) {
-          currentlyPlaying = {
-            _id: currentTrack._id,
-            // trackId: currentTrack.track_id,
-            track_id: currentTrack.track_id,
-            uri: `spotify:track:${currentTrack.track_id}`,
-            name: currentTrack.title,
-            artists: currentTrack.artists,
-            albumImage: currentTrack.track_image,
-            addedBy: currentTrack.added_by_name,
-          };
-        }
+      const currentTrack = session.current_track_id ? await Queue.findById(session.current_track_id) : await this.getLastPlayedInQueue(session._id);
+
+      if (!session.current_track_id && currentTrack) {
+        session.current_track_id = currentTrack._id;
+        await session.save();
       }
+
+      currentlyPlaying = {
+        _id: currentTrack._id,
+        // trackId: currentTrack.track_id,
+        track_id: currentTrack.track_id,
+        uri: `spotify:track:${currentTrack.track_id}`,
+        name: currentTrack.title,
+        artists: currentTrack.artists,
+        albumImage: currentTrack.track_image,
+        addedBy: currentTrack.added_by_name,
+      };
 
       logger.info(`Listener from backend ${session.participants.length}`)
       // Compile all session data into a structured response
