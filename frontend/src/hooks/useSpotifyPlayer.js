@@ -3,11 +3,13 @@ import useAuthStore from "../store/authStore";
 import useLiveSessionStore from "../store/liveSessionStore";
 import { authService } from "../services/authService";
 
+// TODO: Remove global player state and rely on React state instead, but this was added to work around an issue where the Spotify player would disconnect when the hook re-initialized (e.g. on page refresh or navigation). This way we can keep the same player instance alive across the app. We should eventually refactor to a more robust solution, possibly using a context provider for the Spotify player.
 let globalPlayer = null;
 let globalDeviceId = null;
 let globalReady = false;
 let sdkLoading = false;
 let sdkLoaded = false;
+let isInitializingPlayer = false;
 
 export const resetSpotifyPlayer = () => {
   if (globalPlayer) {
@@ -37,62 +39,67 @@ const useSpotifyPlayer = () => {
   const tokenRef = useRef(null);
   const endedFiredRef = useRef(false);
   const lastTrackIdRef = useRef(null);
+  const tokenPromiseRef = useRef(null);
 
   // --- Get fresh Spotify token ---
   const getToken = useCallback(async () => {
-    try {
-      const res = await authService.spotifyToken();
-      tokenRef.current = res.data.access_token;
-      return res.data.access_token;
-    } catch (error) {
-      console.error("Spotify token failed", error);
-      setSpotifyConnected(false);
-      return null;
+    if(tokenRef.current) return tokenRef.current; // Return cached token if it's still valid
+
+    if(tokenPromiseRef.current) {
+      return await tokenPromiseRef.current; // Wait for ongoing token refresh if it exists
     }
+
+    tokenPromiseRef.current = (async () => {
+      try {
+        const response = await authService.spotifyToken();
+        const token = response.data.access_token;
+        tokenRef.current = token;
+        console.log("Obtained new Spotify token");
+        return token;
+      } catch (err) {
+        console.error("Spotify token failed", err);
+        setSpotifyConnected(false);
+        return null;
+      } finally {
+        tokenPromiseRef.current = null; // Clear the promise ref after completion
+      }
+    })();
+
+    return await tokenPromiseRef.current;
   }, [setSpotifyConnected]);
 
   // --- Transfer playback to this device safely ---
   const transferPlayback = useCallback(
-    async (device_id) => {
+    async (device_id, retries = 5) => {
       const token = await getToken();
-      if (!token) return;
+      if (!token || !player) return;
 
       try {
-        // Get available devices
-        const devicesRes = await fetch(
-          "https://api.spotify.com/v1/me/player/devices",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        const devicesData = await devicesRes.json();
-        const availableDevice = devicesData.devices.find(
-          (d) => d.id === device_id
-        );
-
-        if (!availableDevice) {
-          console.warn(
-            "VibeRadius device not available yet (not in /devices list)"
-          );
-          return;
-        }
+        await player.setVolume(0.5);
 
         console.log("Device id for transfer:", device_id);
         // Transfer playback
-        await fetch("https://api.spotify.com/v1/me/player", {
+        const response = await fetch("https://api.spotify.com/v1/me/player", {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ device_ids: [device_id], play: false }),
+          body: JSON.stringify({ device_ids: [device_id], play: true }),
         });
-        console.log("✅ Playback transferred to device:", availableDevice.name);
+
+        if (response.status === 404 && retries > 0) {
+          console.warn(`Device not found for transfer, retrying... (${retries} left)`)
+          const nextDelay = (6 - retries) * 1000; // Exponential backoff: 1s, 2s, 3s, 4s
+          setTimeout(() => transferPlayback(device_id, retries - 1), nextDelay);
+        } else if (response.ok) {
+          console.log("✅ Playback transferred!!");
+        }
       } catch (err) {
         console.warn("Playback transfer failed", err);
       }
     },
-    [getToken]
+    [getToken, player]
   );
 
   // --- Initialize Spotify SDK and player ---
@@ -115,81 +122,93 @@ const useSpotifyPlayer = () => {
     }
 
     const initializePlayer = async () => {
-      if (globalPlayer) return;
-      const token = await getToken();
-      if (!token) return;
+      if (globalPlayer || isInitializingPlayer) return;
 
-      const playerInstance = new window.Spotify.Player({
-        name: "VibeRadius Player",
-        getOAuthToken: async (cb) => {
-          const freshToken = await getToken();
-          if (freshToken) cb(freshToken);
-        },
-        volume: 0.5,
-      });
+      isInitializingPlayer = true;
 
-      playerInstance.addListener("ready", async ({ device_id }) => {
-        console.log("✅ Player ready", device_id);
-        globalPlayer = playerInstance;
-        globalDeviceId = device_id;
-        setPlayer(playerInstance);
-        setDeviceId(device_id);
-
-        await transferPlayback(device_id, false);
-        globalReady = true;
-        setIsReady(true);
-      });
-
-      playerInstance.addListener("not_ready", () => {
-        globalReady = false;
-        setIsReady(false);
-      });
-
-      playerInstance.addListener("authentication_error", async () => {
-        const newToken = await getToken();
-        if (!newToken) setSpotifyConnected(false);
-      });
-
-      playerInstance.addListener("account_error", () =>
-        setSpotifyConnected(false)
-      );
-
-      playerInstance.addListener("player_state_changed", (state) => {
-        if (!state) {
-          setActive(false);
-          return;
-        }
-
-        setPaused(state.paused);
-        const currentId = state.track_window?.current_track?.id;
-        if (currentId && lastTrackIdRef.current !== currentId) {
-          lastTrackIdRef.current = currentId;
-          endedFiredRef.current = false;
-        }
-
-        const ended =
-          state.paused === true &&
-          state.position === 0 &&
-          currentId &&
-          lastTrackIdRef.current === currentId;
-
-        if (ended && !endedFiredRef.current) {
-          endedFiredRef.current = true;
-          window.__onSpotifyTrackEnded?.();
-        }
-
-        playerInstance.getCurrentState().then((currentState) => {
-          !currentState ? setActive(false) : setActive(true);
+      try {
+        const playerInstance = new window.Spotify.Player({
+          name: "VibeRadius Player",
+          getOAuthToken: async (cb) => {
+            const token = await getToken();
+            cb(token);
+          },
+          volume: 0.5,
         });
-      });
 
-      await playerInstance.connect();
+        playerInstance.addListener("ready", async ({ device_id }) => {
+          console.log("✅ Player ready", device_id);
+          globalPlayer = playerInstance;
+          globalDeviceId = device_id;
+          globalReady = true;
+
+          setPlayer(playerInstance);
+          setDeviceId(device_id);
+          setIsReady(true);
+
+          setTimeout(() => {
+            transferPlayback(device_id);
+          }, 2000);
+
+          isInitializingPlayer = false;
+        });
+
+        playerInstance.addListener("not_ready", () => {
+          globalReady = false;
+          setIsReady(false);
+        });
+
+        playerInstance.addListener("account_error", () =>
+          setSpotifyConnected(false)
+        );
+
+        playerInstance.addListener("player_state_changed", (state) => {
+          if (!state) {
+            setActive(false);
+            return;
+          }
+
+          setPaused(state.paused);
+          const currentId = state.track_window?.current_track?.id;
+          if (currentId && lastTrackIdRef.current !== currentId) {
+            lastTrackIdRef.current = currentId;
+            endedFiredRef.current = false;
+          }
+
+          const ended =
+            state.paused === true &&
+            state.position === 0 &&
+            currentId &&
+            lastTrackIdRef.current === currentId;
+
+          if (ended && !endedFiredRef.current) {
+            endedFiredRef.current = true;
+            window.__onSpotifyTrackEnded?.();
+          }
+
+          playerInstance.getCurrentState().then((currentState) => {
+            !currentState ? setActive(false) : setActive(true);
+          });
+        });
+
+        const handleLoadError = () => {
+          isInitializingPlayer = false;
+          globalPlayer = null;
+        };
+
+        playerInstance.addListener("initialization_error", handleLoadError);
+        playerInstance.addListener("authentication_error", handleLoadError);
+
+        await playerInstance.connect();
+      } catch (error) {
+        console.error("Player connection error", error);
+      }
     };
 
     if (window.Spotify) {
       sdkLoaded = true;
       initializePlayer();
-    } else {
+    } else if (!window.onSpotifyWebPlaybackSDKReady) {
       window.onSpotifyWebPlaybackSDKReady = () => {
         sdkLoaded = true;
         initializePlayer();
